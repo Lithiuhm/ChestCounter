@@ -20,29 +20,6 @@ Chest Counter reads the replays Fortnite saves after each match and keeps a runn
 
 > It counts the chests **you opened**. It does not show where chests are on the map.
 
-## What's new in 2.0.12
-
-- **Gem icon 💎** for treasures in the window, the overlay and OBS.
-
-## What's new in 2.0.11
-
-- **Redesigned, more compact overlay:** colored stripe on the left (gold between matches, green during a match), a **LIVE** pill, the previous or current match in its own box and the **session average**.
-- **Overlay off by default:** turn it on with the **Overlay** button or Ctrl+Shift+O. The button shows a green (on) or red (off) dot.
-- **Overlay for OBS by URL:** while the counter is open, the overlay is served at **http://localhost:7373/**, ready for a browser source (copy it from **Settings**).
-- **Chests from before the counter:** in **Settings** you can type an estimate of the chests you opened before using the tool; it is added to your total (not to averages or records).
-- **Version shown:** in the window title and in **Settings**.
-- **Redesigned Settings** in the same style as the main window: rounded cards, switches, fully dark.
-- **New palette:** cyan for actions, blue in the chart and pink for treasures.
-- **Spanish and English only.**
-
-## What's new in 2.0
-
-- **Last 7 days at a glance:** the bottom of the main window shows a bar chart with the chests you opened on each of the last 7 days (today in cyan). The window grows taller, not wider.
-- **Last match:** block with the chests you opened in your last match (broken ones count too), treasures, placement and eliminations.
-- **History:** the window shows how many matches you have stored in total and since when. This number does not depend on the replays: even when Fortnite deletes old replays, your history is kept.
-- **Rounded window:** the main window has rounded corners.
-- **Cleaner main window:** the creator code box has been removed.
-
 ## How it works (and why it is safe)
 
 Fortnite can record a **replay file** of every match on your PC. Chest Counter reads these files once the match is over, and nothing else.

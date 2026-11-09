@@ -20,30 +20,6 @@ Contador de cofres lee las repeticiones (replays) que Fortnite guarda después d
 
 > Cuenta los cofres que **tú** abriste. No muestra dónde están los cofres en el mapa.
 
-## Novedades de la 2.0.12
-
-- **Icono de gema 💎** para los tesoros en la ventana, el overlay y OBS.
-
-## Novedades de la 2.0.11
-
-- **Overlay rediseñado y más compacto:** franja de color a la izquierda (dorada entre partidas, verde durante una partida), etiqueta **EN DIRECTO** en forma de pastilla, la partida anterior o la actual en su propio recuadro y la **media de la sesión**.
-- **Overlay desactivado por defecto:** lo activas tú con el botón **Overlay** o con Ctrl+Mayús+O. El botón muestra un punto verde (activado) o rojo (desactivado).
-- **Overlay para OBS por URL:** mientras el contador está abierto, el overlay está en **http://localhost:7373/**, lista para una fuente de navegador (se copia desde **Ajustes**).
-- **Cofres de antes del contador:** en **Ajustes** puedes escribir un estimado de los cofres que abriste antes de usar la herramienta; se suma a tu total (no a medias ni récords).
-- **Versión visible:** en el título de la ventana y en **Ajustes**.
-- **Ajustes rediseñados** con el mismo estilo que la ventana principal: tarjetas redondeadas, interruptores y todo en oscuro.
-- **Nueva paleta:** cian para las acciones, azul en el gráfico y rosa para los tesoros.
-- **Solo español e inglés.**
-
-## Novedades de la 2.0
-
-- **Últimos 7 días de un vistazo:** en la parte inferior de la ventana principal aparece un gráfico de barras con los cofres que abriste en cada uno de los últimos 7 días (hoy en cian). La ventana es un poco más alta, no más ancha.
-- **Última partida:** bloque con los cofres abiertos de tu última partida (los rotos también cuentan), tesoros, puesto y eliminaciones.
-- **Histórico:** la ventana muestra cuántas partidas tienes guardadas en total y desde cuándo. Ese número no depende de los replays: aunque Fortnite borre los replays antiguos, tu historial se conserva.
-- **Ventana redondeada:** la ventana principal tiene las esquinas redondeadas (en Windows 11).
-- **Ventana principal más limpia:** se ha quitado el recuadro del código de creador.
-- **Overlay:** durante una partida, la etiqueta dice **● EN PARTIDA**.
-
 ## Cómo funciona (y por qué es seguro)
 
 Fortnite puede grabar un **archivo de repetición** de cada partida en tu PC. Contador de cofres lee estos archivos cuando la partida ha terminado, y nada más.
