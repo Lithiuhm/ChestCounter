@@ -20,6 +20,10 @@ Chest Counter reads the replays Fortnite saves after each match and keeps a runn
 
 > It counts the chests **you opened**. It does not show where chests are on the map.
 
+## What's new in 2.0.12
+
+- **Gem icon 💎** for treasures in the window, the overlay and OBS.
+
 ## What's new in 2.0.11
 
 - **Redesigned, more compact overlay:** colored stripe on the left (gold between matches, green during a match), a **LIVE** pill, the previous or current match in its own box and the **session average**.

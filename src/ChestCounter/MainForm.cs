@@ -213,7 +213,7 @@ public sealed class MainForm : Form
         _statMatchesCap.Text = st.HistorySince is { } since
             ? L.T($"Desde {since:dd/MM/yy}", $"Since {since:dd/MM/yy}")
             : L.T("Histórico", "History");
-        _statTreasures.Text = $"★ {L.N(st.Treasures)}";
+        _statTreasures.Text = $"{OverlayModel.TreasureIcon} {L.N(st.Treasures)}";
         _overlayButton.Enabled = _monitor.OverlayEnabled;
         _overlayButton.Indicator = _monitor.OverlayVisible ? Theme.Green : Theme.Red;
 

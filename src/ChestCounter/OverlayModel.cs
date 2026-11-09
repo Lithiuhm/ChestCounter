@@ -6,6 +6,9 @@ public static class OverlayModel
     /// <summary>Texto del contador derecho entre dos partidas (también sirve para mantener el ancho del overlay).</summary>
     public static string LastMatchCaption => L.T("anterior", "previous");
 
+    /// <summary>Icono del contador de tesoros (una gema).</summary>
+    public const string TreasureIcon = "💎";
+
     /// <param name="live">Cifras de la partida en curso, cuando el replay se pudo leer (null si no).</param>
     /// <param name="inProgress">Hay una partida grabándose (aunque sus cifras aún no se puedan leer).</param>
     /// <param name="initialChests">Cofres estimados de antes de usar la herramienta (solo se suman al total).</param>
@@ -40,7 +43,7 @@ public static class OverlayModel
         }
 
         var treasures = d.Matches.Sum(m => m.TreasureFinds.Count) + liveTreasures;
-        rows.Add(new OverlayRow(L.T("Tesoros", "Treasures"), $"★ {L.N(treasures)}", Treasure: true));
+        rows.Add(new OverlayRow(L.T("Tesoros", "Treasures"), $"{TreasureIcon} {L.N(treasures)}", Treasure: true));
 
         // Contador derecho: la partida en curso si se puede leer, "…" mientras no se pueda, si no la última partida.
         if (live != null)

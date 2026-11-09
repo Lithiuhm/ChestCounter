@@ -20,6 +20,10 @@ Contador de cofres lee las repeticiones (replays) que Fortnite guarda después d
 
 > Cuenta los cofres que **tú** abriste. No muestra dónde están los cofres en el mapa.
 
+## Novedades de la 2.0.12
+
+- **Icono de gema 💎** para los tesoros en la ventana, el overlay y OBS.
+
 ## Novedades de la 2.0.11
 
 - **Overlay rediseñado y más compacto:** franja de color a la izquierda (dorada entre partidas, verde durante una partida), etiqueta **EN DIRECTO** en forma de pastilla, la partida anterior o la actual en su propio recuadro y la **media de la sesión**.
