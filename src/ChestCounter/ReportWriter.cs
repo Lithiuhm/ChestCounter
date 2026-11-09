@@ -432,6 +432,8 @@ public static class ReportWriter
             sb.Append("</tbody></table></div></section>");
         }
 
+        AppendTeammates(sb, matches, N);
+
         // Partidas: los tesoros solo aparecen cuando salió alguno.
         var shown = matches.Take(100).ToList();
         var shownMax = Math.Max(1, shown.Select(m => m.ChestsOpened).DefaultIfEmpty(0).Max());
@@ -470,6 +472,82 @@ public static class ReportWriter
             </main></body></html>
             """));
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Compañeros: partidas juntos y cofres que se les vio abrir. Solo cuenta lo que pasó cerca de ti (el replay no
+    /// tiene lo demás), así que es un mínimo. Sin sección si ninguna partida tiene compañeros registrados.
+    /// </summary>
+    private static void AppendTeammates(StringBuilder sb, List<MatchRecord> matches, Func<int, string> N)
+    {
+        var rows = matches
+            .Where(m => m.Teammates != null)
+            .SelectMany(m => m.Teammates!.Select(t => (m, t)))
+            .GroupBy(r => r.t.EpicId ?? r.t.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(g =>
+            {
+                var latest = g.OrderByDescending(r => When(r.m)).First();
+                var together = g.Select(r => r.m).Distinct().ToList();
+                return (
+                    Name: latest.t.Name,
+                    Matches: together.Count,
+                    Chests: g.Sum(r => r.t.ChestsSeen),
+                    Mine: together.Sum(m => m.ChestsOpened),
+                    Best: g.Max(r => r.t.ChestsSeen),
+                    Wins: together.Count(m => m.Placement == 1),
+                    Last: When(latest.m));
+            })
+            .OrderByDescending(r => r.Matches).ThenByDescending(r => r.Chests)
+            .ToList();
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        var tracked = matches.Count(m => m.Teammates is { Count: > 0 });
+        var total = rows.Count;
+
+        // Random teammates (squad fill) played once: summed up in one line instead of one row each.
+        var regulars = rows.Where(r => r.Matches >= 2).ToList();
+        var oneOff = rows.Count - regulars.Count;
+        if (regulars.Count > 0)
+        {
+            rows = regulars;
+        }
+        else
+        {
+            oneOff = Math.Max(0, rows.Count - 20);
+            rows = rows.Take(20).ToList();
+        }
+
+        var maxAvg = Math.Max(0.1, rows.Max(r => (double)r.Chests / r.Matches));
+        sb.Append($"""
+            <section><div class="sh"><h2>{L.T("Compañeros", "Teammates")}</h2><span class="meta">{L.Count(total, "compañero", "compañeros", "teammate", "teammates")} · {L.Count(tracked, "partida en equipo", "partidas en equipo", "team match", "team matches")}</span></div>
+            <div class="card tw"><table><thead><tr><th>{L.T("Compañero", "Teammate")}</th><th class="r">{L.T("Partidas juntos", "Matches together")}</th><th class="r">{L.T("Cofres vistos", "Chests seen")}</th><th class="r">{L.T("Media", "Average")}</th><th class="r">{L.T("Récord", "Best")}</th><th class="r">{L.T("Tus cofres", "Your chests")}</th><th>{L.T("Última partida", "Last match")}</th></tr></thead><tbody>
+            """);
+        foreach (var r in rows)
+        {
+            var avg = (double)r.Chests / r.Matches;
+            var barW = (100.0 * avg / maxAvg).ToString("0.##", CultureInfo.InvariantCulture);
+            var wins = r.Wins > 0 ? $" <span class=\"badge win\">🏆 {N(r.Wins)}</span>" : "";
+            sb.Append($"<tr><td>{H(r.Name)}{wins}</td><td class=\"r\">{N(r.Matches)}</td><td class=\"r\"><b>{N(r.Chests)}</b></td>"
+                + $"<td><div class=\"chests\"><span class=\"mini\"><i style=\"width:{barW}%\"></i></span><b>{avg.ToString("0.0", Loc)}</b></div></td>"
+                + $"<td class=\"r\">{N(r.Best)}</td><td class=\"r sm\">{N(r.Mine)}</td><td class=\"nw\">{L.DateTimeShort(r.Last)}</td></tr>");
+        }
+        if (oneOff > 0)
+        {
+            sb.Append($"<tr><td colspan=\"7\" class=\"sm\">{(regulars.Count > 0
+                ? L.T($"Y {L.Count(oneOff, "compañero", "compañeros", "", "")} con una sola partida (relleno de equipo), no mostrados.",
+                    $"And {L.Count(oneOff, "", "", "teammate", "teammates")} with a single match (team fill), not shown.")
+                : L.T($"Y {L.Count(oneOff, "compañero más", "compañeros más", "", "")}.", $"And {L.Count(oneOff, "", "", "more teammate", "more teammates")}."))}</td></tr>");
+        }
+        sb.Append($"""
+            </tbody></table></div>
+            <p class="note">{L.T(
+                "Los cofres de tus compañeros salen de tu replay, y Fortnite solo graba lo que pasa cerca de ti: cuando un compañero se aleja, sus cofres no se ven. Son un mínimo, no su total. «Tus cofres» son los tuyos en esas mismas partidas, para comparar.",
+                "Your teammates' chests come from your replay, and Fortnite only records what happens near you: when a teammate moves away, their chests are not seen. They are a minimum, not their total. \"Your chests\" are yours in those same matches, for comparison.")}</p>
+            </section>
+            """);
     }
 
     /// <summary>Tope "redondo" para la escala del gráfico (1, 2, 2.5, 5 × 10ⁿ), siempre ≥ el valor.</summary>
@@ -598,8 +676,8 @@ public static class ReportWriter
     public static string Csv(TrackerData data)
     {
         var sb = new StringBuilder();
-        sb.AppendLine(L.T("fecha;modo;jugador;puesto;jugadores;cofres;cajas_municion;tesoros;archivo",
-            "date;mode;player;placement;players;chests;ammo_boxes;treasures;file"));
+        sb.AppendLine(L.T("fecha;modo;jugador;puesto;jugadores;cofres;cajas_municion;tesoros;archivo;compañeros_cofres_vistos",
+            "date;mode;player;placement;players;chests;ammo_boxes;treasures;file;teammates_chests_seen"));
 
         foreach (var m in data.Matches.OrderBy(When))
         {
@@ -607,7 +685,8 @@ public static class ReportWriter
             sb.AppendLine(string.Join(";",
                 When(m).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
                 Pretty.Playlist(m.Playlist), m.PlayerName, m.Placement, m.TotalPlayers,
-                m.ChestsOpened, m.AmmoBoxesOpened, t, m.ReplayFile));
+                m.ChestsOpened, m.AmmoBoxesOpened, t, m.ReplayFile,
+                string.Join(" + ", (m.Teammates ?? new()).Select(x => $"{x.Name.Replace(';', ',')}: {x.ChestsSeen}"))));
         }
         return sb.ToString();
     }

@@ -101,6 +101,7 @@ De arriba abajo verás: el total de cofres, la última partida, la sesión, hoy,
 - **Cofres por día:** gráfico de los últimos 30 días con escala, la media diaria (línea discontinua) y hoy en cian. Pasa el ratón por una barra para ver el día y sus cofres.
 - **Por tipo de cofre** y **de dónde vienen los tesoros**, con una barra de proporción por fila. Las cajas de munición, de comida y los cañones de botín aparecen aparte, fuera del total.
 - **Tesoros obtenidos:** cada tesoro con su partida, el momento y el cofre de origen.
+- **Compañeros** (en dúos, tríos y escuadrones): cada compañero con las partidas jugadas juntos, los cofres que se le vieron abrir, su media y su récord, y tus cofres en esas mismas partidas.
 - **Últimas partidas** (las 100 más recientes): modo, puesto (🏆 victoria en dorado, top 10 en verde), cofres y tesoros.
 
 <p align="center"><img src="docs/report.png" alt="Informe" width="820"></p>
@@ -112,6 +113,15 @@ De arriba abajo verás: el total de cofres, la última partida, la sesión, hoy,
 - Un tesoro que sale de algo que no es un cofre (cañón de botín, caja de munición…) se resalta con ⚑ en el informe.
 
 El juego solo envía ids de premios, no nombres: `treasures.json` los asigna a nombres y se puede editar con el Bloc de notas. Los ids nuevos se añaden solos y la herramienta te avisa cuando uno necesita nombre.
+
+## Compañeros
+
+En dúos, tríos y escuadrones, cada partida guarda también a tus compañeros y los cofres que abrieron. El informe junta su histórico: partidas juntos, cofres vistos, media y récord.
+
+> [!NOTE]
+> Los cofres de tus compañeros salen de **tu** replay, y Fortnite solo graba lo que pasa cerca de ti. Cuando un compañero se aleja, sus cofres no se ven: la cifra es un **mínimo**, no su total. Tu propio total no cambia.
+
+Las partidas contadas con versiones anteriores no tienen compañeros, salvo las que aún tengan su replay en la carpeta (se vuelven a analizar solas al abrir la herramienta).
 
 ## Perfiles (varias cuentas en un PC)
 
@@ -129,7 +139,7 @@ Todo se guarda en `%APPDATA%\ChestCounter`:
 |---|---|
 | `report.html` | El informe (se abre en tu navegador). |
 | `overlay.html` | Copia del overlay en un archivo (para OBS es mejor la dirección http://localhost:7373/). |
-| `matches.csv` | Una línea por partida, para Excel o Google Sheets. |
+| `matches.csv` | Una línea por partida, para Excel o Google Sheets (con los cofres vistos de cada compañero). |
 | `data.json` | Tu historial completo. **Haz copia de seguridad** si cambias de PC. |
 | `config.json` | Perfil, carpeta de repeticiones, posición del overlay y ajustes. |
 | `treasures.json` | Nombres de los premios de la caza del tesoro. |

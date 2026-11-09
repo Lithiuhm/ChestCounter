@@ -44,6 +44,20 @@ public sealed class TreasureFind
     public List<string> AlsoPossible { get; set; } = new();
 }
 
+/// <summary>
+/// A teammate of the tracked player in one match. Only the chests opened near the recording player are in the
+/// replay (the game does not send what happens far away), so <see cref="ChestsSeen"/> is a minimum.
+/// </summary>
+public sealed class TeammateRecord
+{
+    public string Name { get; set; } = "";
+    public string? EpicId { get; set; }
+    /// <summary>Chests this teammate was seen opening or destroying.</summary>
+    public int ChestsSeen { get; set; }
+    /// <summary>Same chests by kind (Chest, Rare chest...).</summary>
+    public Dictionary<string, int> Kinds { get; set; } = new();
+}
+
 public sealed class MatchRecord
 {
     public string SessionId { get; set; } = "";
@@ -71,6 +85,8 @@ public sealed class MatchRecord
     public bool IsBattleRoyale { get; set; } = true;
     public List<ChestRecord> Chests { get; set; } = new();
     public List<TreasureFind> TreasureFinds { get; set; } = new();
+    /// <summary>Teammates of the match (empty in solo). Null for matches analyzed before analyzer version 10.</summary>
+    public List<TeammateRecord>? Teammates { get; set; }
 }
 
 public sealed class Config

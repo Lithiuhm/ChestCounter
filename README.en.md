@@ -101,6 +101,7 @@ From top to bottom you will see: the total chests, the last match, the session, 
 - **Chests per day:** chart of the last 30 days with a scale, the daily average (dashed line) and today in cyan. Hover a bar to see the day and its chests.
 - **By chest type** and **where the treasures come from**, with a proportion bar on each row. Ammo boxes, food boxes and loot cannons are listed apart, not in the total.
 - **Treasures obtained:** each treasure with its match, the moment and the source chest.
+- **Teammates** (in duos, trios and squads): each teammate with the matches played together, the chests they were seen opening, their average and best, and your chests in those same matches.
 - **Latest matches** (the 100 most recent): mode, placement (🏆 victory in gold, top 10 in green), chests and treasures.
 
 <p align="center"><img src="docs/report.png" alt="Report" width="820"></p>
@@ -112,6 +113,15 @@ From top to bottom you will see: the total chests, the last match, the session, 
 - A treasure that came from something other than a chest (loot cannon, ammo box…) is highlighted with ⚑ in the report.
 
 The game only sends prize ids, not names: `treasures.json` maps them to names and can be edited with Notepad. New ids are added automatically and the tool tells you when one needs a name.
+
+## Teammates
+
+In duos, trios and squads, each match also stores your teammates and the chests they opened. The report gathers their history: matches together, chests seen, average and best.
+
+> [!NOTE]
+> Your teammates' chests come from **your** replay, and Fortnite only records what happens near you. When a teammate moves away, their chests are not seen: the figure is a **minimum**, not their total. Your own total does not change.
+
+Matches counted with older versions have no teammates, except those whose replay is still in the folder (they are re-analyzed automatically when the tool opens).
 
 ## Profiles (several accounts on one PC)
 
@@ -129,7 +139,7 @@ Everything is stored in `%APPDATA%\ChestCounter`:
 |---|---|
 | `report.html` | The report (opens in your browser). |
 | `overlay.html` | File copy of the overlay (for OBS, prefer http://localhost:7373/). |
-| `matches.csv` | One line per match, for Excel or Google Sheets. |
+| `matches.csv` | One line per match, for Excel or Google Sheets (with the chests seen for each teammate). |
 | `data.json` | Your full history. **Back it up** if you change PC. |
 | `config.json` | Profile, replays folder, overlay position and settings. |
 | `treasures.json` | Names of the treasure hunt prizes. |
