@@ -1,0 +1,9 @@
+C:\Users\Doofy\Desktop\ChestCounter\lib\OozSharp\bin\Release\net10.0\OozSharp.deps.json
+C:\Users\Doofy\Desktop\ChestCounter\lib\OozSharp\bin\Release\net10.0\OozSharp.dll
+C:\Users\Doofy\Desktop\ChestCounter\lib\OozSharp\obj\Release\net10.0\OozSharp.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Doofy\Desktop\ChestCounter\lib\OozSharp\obj\Release\net10.0\OozSharp.AssemblyInfoInputs.cache
+C:\Users\Doofy\Desktop\ChestCounter\lib\OozSharp\obj\Release\net10.0\OozSharp.AssemblyInfo.cs
+C:\Users\Doofy\Desktop\ChestCounter\lib\OozSharp\obj\Release\net10.0\OozSharp.csproj.CoreCompileInputs.cache
+C:\Users\Doofy\Desktop\ChestCounter\lib\OozSharp\obj\Release\net10.0\OozSharp.dll
+C:\Users\Doofy\Desktop\ChestCounter\lib\OozSharp\obj\Release\net10.0\refint\OozSharp.dll
+C:\Users\Doofy\Desktop\ChestCounter\lib\OozSharp\obj\Release\net10.0\ref\OozSharp.dll

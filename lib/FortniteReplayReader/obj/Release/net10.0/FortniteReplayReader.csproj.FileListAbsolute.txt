@@ -1,0 +1,14 @@
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\bin\Release\net10.0\FortniteReplayReader.deps.json
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\bin\Release\net10.0\FortniteReplayReader.dll
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\bin\Release\net10.0\OozSharp.dll
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\bin\Release\net10.0\Unreal.Core.dll
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\bin\Release\net10.0\Unreal.Encryption.dll
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\obj\Release\net10.0\FortniteReplayReader.csproj.AssemblyReference.cache
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\obj\Release\net10.0\FortniteReplayReader.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\obj\Release\net10.0\FortniteReplayReader.AssemblyInfoInputs.cache
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\obj\Release\net10.0\FortniteReplayReader.AssemblyInfo.cs
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\obj\Release\net10.0\FortniteReplayReader.csproj.CoreCompileInputs.cache
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\obj\Release\net10.0\Fortnite.E7E74BAE.Up2Date
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\obj\Release\net10.0\FortniteReplayReader.dll
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\obj\Release\net10.0\refint\FortniteReplayReader.dll
+C:\Users\Doofy\Desktop\ChestCounter\lib\FortniteReplayReader\obj\Release\net10.0\ref\FortniteReplayReader.dll
