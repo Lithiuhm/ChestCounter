@@ -51,10 +51,10 @@ public static class OverlayModel
             return new OverlayView(L.N(total), L.N(live.ChestsOpened), L.T("actual", "current"), true,
                 L.T("● EN DIRECTO", "● LIVE"), rows);
         }
+        // Sin etiqueta en la cabecera: el contador derecho ya dice "en curso".
         if (inProgress)
         {
-            return new OverlayView(L.N(total), "…", L.T("en curso", "in progress"), true,
-                L.T("● EN PARTIDA", "● MATCH IN PROGRESS"), rows);
+            return new OverlayView(L.N(total), "…", L.T("en curso", "in progress"), true, null, rows);
         }
         return new OverlayView(L.N(total), last != null ? L.N(last.ChestsOpened) : null, LastMatchCaption, false, null, rows);
     }

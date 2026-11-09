@@ -33,23 +33,25 @@ public static class Profiles
         return all.FirstOrDefault(p => p.Key == c.Profile) ?? all.FirstOrDefault();
     }
 
-    /// <summary>The data of one profile only (same objects, filtered list), as seen by the overlay and the report.</summary>
+    /// <summary>
+    /// The data of one profile only, as seen by the window, the overlay and the report. Without the
+    /// "count destroyed chests" setting, the matches are copies without the destroyed chests.
+    /// </summary>
     public static TrackerData View(TrackerData d, Config c)
     {
         var current = Current(d, c);
-        if (current == null)
-        {
-            return d;
-        }
         return new TrackerData
         {
             Version = d.Version,
             AnalyzerVersion = d.AnalyzerVersion,
             CreatedUtc = d.CreatedUtc,
-            Matches = d.Matches.Where(m => Key(m) == current.Key).ToList(),
+            Matches = d.Matches.Where(m => current == null || Key(m) == current.Key).Select(m => Adjust(m, c)!).ToList(),
             ProcessedFiles = d.ProcessedFiles,
         };
     }
+
+    /// <summary>A match as shown: without its destroyed chests when they are not counted as opened.</summary>
+    public static MatchRecord? Adjust(MatchRecord? m, Config c) => m == null || c.CountDestroyed ? m : m.WithoutDestroyed();
 
     /// <summary>Estimated chests opened before the tool for a profile key ("" = before the first match).</summary>
     public static int InitialChests(Config c, string? key) =>

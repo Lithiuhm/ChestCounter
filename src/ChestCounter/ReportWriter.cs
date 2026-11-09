@@ -94,18 +94,12 @@ public static class ReportWriter
 
     private static CultureInfo Loc => L.Culture;
 
-    /// <summary>Teammates who share their data (team folder or imported files), as of the last report.</summary>
-    public static volatile IReadOnlyList<TeamExport> LastShared = Array.Empty<TeamExport>();
-
     public static void WriteAll(Store store, Config config, TrackerData data)
     {
         try
         {
-            TeamShare.Publish(config, data);
-            var shared = TeamShare.Load(store, config, data);
-            LastShared = shared;
             var view = Profiles.View(data, config);
-            WriteAtomic(store.ReportPath, Report(config, view, Profiles.List(data), Profiles.InitialChests(data, config), shared));
+            WriteAtomic(store.ReportPath, Report(config, view, Profiles.List(data), Profiles.InitialChests(data, config)));
             WriteAtomic(store.OverlayPath, Overlay(OverlayModel.Build(view, null, false, Profiles.InitialChests(data, config))));
             WriteAtomic(store.CsvPath, Csv(data));
         }
@@ -239,11 +233,6 @@ public static class ReportWriter
         .flag{display:flex;gap:12px;align-items:flex-start;margin-top:28px;padding:14px 18px;border:1px solid var(--amber);border-radius:14px;background:var(--amber-soft)}
         .flag .ic{color:var(--amber);font-size:18px;line-height:1.2}
         .empty{padding:28px 20px;text-align:center;color:var(--muted)}
-        .mate{min-width:210px}
-        .avg-n{color:var(--amber)}
-        .mate b{font-weight:600;overflow-wrap:anywhere}
-        .mate .tags{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:4px}
-        .mate .badge{padding:1px 8px;font-size:12px}
 
         /* Carga */
         .loading{display:flex;gap:16px;align-items:center;background:var(--card);border:1px solid var(--cyan);border-radius:16px;padding:16px 18px;margin-bottom:22px;box-shadow:var(--shadow)}
@@ -266,7 +255,7 @@ public static class ReportWriter
 
     private const string ChestIcon = """<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10V8a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/><rect x="3" y="10" width="18" height="10" rx="2"/><path d="M3 14h18"/><rect x="10" y="12" width="4" height="4" rx="1"/></svg>""";
 
-    public static string Report(Config config, TrackerData data, IReadOnlyList<Profile> profiles, int initialChests = 0, IReadOnlyList<TeamExport>? shared = null)
+    public static string Report(Config config, TrackerData data, IReadOnlyList<Profile> profiles, int initialChests = 0)
     {
         var progress = Progress;
         var matches = data.Matches.OrderByDescending(When).ToList();
@@ -443,20 +432,16 @@ public static class ReportWriter
             sb.Append("</tbody></table></div></section>");
         }
 
-        var team = new TeamView(matches, shared ?? Array.Empty<TeamExport>());
-        AppendTeammates(sb, matches, team, N);
-
-        // Partidas: los tesoros solo aparecen cuando salió alguno. "Equipo" solo si alguna tiene compañeros.
-        var shown = Shown100(matches);
-        var showTeam = shown.Any(m => team.Of(m) is { Count: > 0 });
+        // Partidas: los tesoros solo aparecen cuando salió alguno.
+        var shown = matches.Take(100).ToList();
         var shownMax = Math.Max(1, shown.Select(m => m.ChestsOpened).DefaultIfEmpty(0).Max());
         sb.Append($"""
             <section><div class="sh"><h2>{L.T("Últimas partidas", "Latest matches")}</h2><span class="meta">{(matches.Count > shown.Count ? L.T($"las {shown.Count} más recientes de {N(matches.Count)}", $"latest {shown.Count} of {N(matches.Count)}") : L.Count(matches.Count, "partida", "partidas", "match", "matches"))}</span></div>
-            <div class="card tw"><table><thead><tr><th>{L.T("Fecha", "Date")}</th><th>{L.T("Modo", "Mode")}</th><th>{L.T("Puesto", "Placement")}</th><th class="r">{L.T("Cofres", "Chests")}</th>{(showTeam ? $"<th class=\"r\" title=\"{H(L.T("Tus cofres más los de tus compañeros", "Your chests plus your teammates'"))}\">{L.T("Equipo", "Team")}</th>" : "")}<th>{L.T("Tesoros", "Treasures")}</th></tr></thead><tbody>
+            <div class="card tw"><table><thead><tr><th>{L.T("Fecha", "Date")}</th><th>{L.T("Modo", "Mode")}</th><th>{L.T("Puesto", "Placement")}</th><th class="r">{L.T("Cofres", "Chests")}</th><th>{L.T("Tesoros", "Treasures")}</th></tr></thead><tbody>
             """);
         if (shown.Count == 0)
         {
-            sb.Append($"<tr><td colspan=\"{(showTeam ? 6 : 5)}\" class=\"empty\">{L.T("Aún no hay partidas analizadas. Juega una y aparecerá aquí.", "No matches analyzed yet. Play one and it will show up here.")}</td></tr>");
+            sb.Append($"<tr><td colspan=\"5\" class=\"empty\">{L.T("Aún no hay partidas analizadas. Juega una y aparecerá aquí.", "No matches analyzed yet. Play one and it will show up here.")}</td></tr>");
         }
         foreach (var m in shown)
         {
@@ -465,7 +450,7 @@ public static class ReportWriter
             var placeClass = m.Placement switch { 1 => " win", > 0 and <= 10 => " top", _ => "" };
             var placeText = m.Placement == 1 ? "🏆 " + H(Pretty.Placement(m)) : H(Pretty.Placement(m));
             var barW = (100.0 * m.ChestsOpened / shownMax).ToString("0.##", CultureInfo.InvariantCulture);
-            sb.Append($"<tr><td class=\"nw\">{L.DateTimeShort(When(m))}</td><td><span class=\"badge mode\">{H(Pretty.Playlist(m.Playlist))}</span></td><td><span class=\"badge{placeClass}\">{placeText}</span></td><td><div class=\"chests\"><span class=\"mini\"><i style=\"width:{barW}%\"></i></span><b>{m.ChestsOpened}</b></div></td>{(showTeam ? TeamCell(m, team) : "")}<td>{treasure}</td></tr>");
+            sb.Append($"<tr><td class=\"nw\">{L.DateTimeShort(When(m))}</td><td><span class=\"badge mode\">{H(Pretty.Playlist(m.Playlist))}</span></td><td><span class=\"badge{placeClass}\">{placeText}</span></td><td><div class=\"chests\"><span class=\"mini\"><i style=\"width:{barW}%\"></i></span><b>{m.ChestsOpened}</b></div></td><td>{treasure}</td></tr>");
         }
         sb.Append("</tbody></table></div></section>");
 
@@ -485,114 +470,6 @@ public static class ReportWriter
             </main></body></html>
             """));
         return sb.ToString();
-    }
-
-    private static List<MatchRecord> Shown100(List<MatchRecord> matches) => matches.Take(100).ToList();
-
-    /// <summary>Cofres del equipo en una partida: los tuyos más los de tus compañeros (≥ si alguno no es exacto).</summary>
-    private static string TeamCell(MatchRecord m, TeamView team)
-    {
-        if (team.Of(m) is not { Count: > 0 } mates)
-        {
-            return "<td class=\"r\"><span class=\"muted\">—</span></td>";
-        }
-        var sum = m.ChestsOpened + mates.Sum(x => x.Chests);
-        var exact = mates.All(x => x.Exact != null);
-        var tip = string.Join(" · ", mates.Select(x => $"{x.Name}: {(x.Exact != null ? "" : "≥")}{x.Chests}"));
-        return $"<td class=\"r nw\" title=\"{H(tip)}\"><b>{(exact ? "" : "≥ ")}{sum}</b></td>";
-    }
-
-    /// <summary>
-    /// Compañeros: partidas juntos y sus cofres. Exactos cuando el compañero comparte sus datos (misma partida en su
-    /// historial); si no, los que se le vio abrir en tu replay, que solo tiene lo que pasó cerca de ti (un mínimo).
-    /// Sin sección si no hay ningún compañero conocido.
-    /// </summary>
-    private static void AppendTeammates(StringBuilder sb, List<MatchRecord> matches, TeamView team, Func<int, string> N)
-    {
-        var rows = team.All
-            .GroupBy(r => r.Mate.Key, StringComparer.OrdinalIgnoreCase)
-            .Select(g =>
-            {
-                var latest = g.OrderByDescending(r => When(r.Match)).First();
-                var together = g.Select(r => r.Match).Distinct().ToList();
-                return (
-                    Key: g.Key,
-                    Name: latest.Mate.Name,
-                    Matches: together.Count,
-                    Chests: g.Sum(r => r.Mate.Chests),
-                    Exact: g.Count(r => r.Mate.Exact != null),
-                    Mine: together.Sum(m => m.ChestsOpened),
-                    Best: g.Max(r => r.Mate.Chests),
-                    Wins: together.Count(m => m.Placement == 1),
-                    Last: When(latest.Match),
-                    Shared: team.SharedOf(g.Key));
-            })
-            .OrderByDescending(r => r.Matches).ThenByDescending(r => r.Chests)
-            .ToList();
-        if (rows.Count == 0)
-        {
-            return;
-        }
-
-        var tracked = matches.Count(m => team.Of(m) is { Count: > 0 });
-        var total = rows.Count;
-        var sharing = rows.Count(r => r.Shared != null);
-
-        // Compañeros aleatorios (relleno de escuadrón) de una sola partida: una línea en vez de una fila cada uno.
-        var regulars = rows.Where(r => r.Matches >= 2 || r.Shared != null).ToList();
-        var oneOff = rows.Count - regulars.Count;
-        if (regulars.Count > 0)
-        {
-            rows = regulars;
-        }
-        else
-        {
-            oneOff = Math.Max(0, rows.Count - 20);
-            rows = rows.Take(20).ToList();
-        }
-
-        var meta = L.Count(total, "compañero", "compañeros", "teammate", "teammates") + " · "
-            + L.Count(tracked, "partida en equipo", "partidas en equipo", "team match", "team matches")
-            + (sharing > 0 ? " · " + L.T($"{N(sharing)} {(sharing == 1 ? "comparte" : "comparten")} sus datos", $"{N(sharing)} sharing their data") : "");
-        sb.Append($"""
-            <section><div class="sh"><h2>{L.T("Compañeros", "Teammates")}</h2><span class="meta">{meta}</span></div>
-            <div class="card tw"><table><thead><tr><th>{L.T("Compañero", "Teammate")}</th><th class="r" title="{H(L.T("Partidas jugadas juntos", "Matches played together"))}">{L.T("Partidas", "Matches")}</th><th class="r">{L.T("Sus cofres", "Their chests")}</th><th class="r">{L.T("Media", "Average")}</th><th class="r">{L.T("Récord", "Best")}</th><th class="r">{L.T("Tus cofres", "Your chests")}</th><th class="r">{L.T("Su historial", "Their history")}</th></tr></thead><tbody>
-            """);
-        foreach (var r in rows)
-        {
-            var avg = (double)r.Chests / r.Matches;
-            // Nombre y, debajo, insignias y la última partida juntos.
-            var wins = r.Wins > 0 ? $"<span class=\"badge win\" title=\"{H(L.T("Victorias juntos", "Wins together"))}\">🏆 {N(r.Wins)}</span>" : "";
-            var tag = r.Shared != null ? $"<span class=\"badge top\" title=\"{H(L.T("Comparte sus datos: cofres exactos", "Shares their data: exact chests"))}\">✓ {L.T("comparte", "shares")}</span>" : "";
-            var who = $"<div class=\"mate\"><b>{H(r.Name)}</b><div class=\"tags\">{wins}{tag}<span class=\"sm\">{L.T("última", "last")} {L.DateTimeShort(r.Last)}</span></div></div>";
-            var exactness = r.Exact == r.Matches ? $"<div class=\"sm\">{L.T("exactos", "exact")}</div>"
-                : r.Exact > 0 ? $"<div class=\"sm\">{L.T($"{N(r.Exact)} de {N(r.Matches)} exactas", $"{N(r.Exact)} of {N(r.Matches)} exact")}</div>"
-                : $"<div class=\"sm\">{L.T("vistos", "seen")}</div>";
-            var min = r.Exact < r.Matches ? "≥ " : "";
-            var history = r.Shared is { } sh
-                ? $"<b>{N(sh.Matches.Sum(x => x.Chests))}</b><div class=\"sm\">{L.Count(sh.Matches.Count, "partida", "partidas", "match", "matches")}</div>"
-                : "<span class=\"muted\">—</span>";
-            sb.Append($"<tr><td>{who}</td><td class=\"r\">{N(r.Matches)}</td><td class=\"r nw\"><b>{min}{N(r.Chests)}</b>{exactness}</td>"
-                + $"<td class=\"r\"><b class=\"avg-n\">{avg.ToString("0.0", Loc)}</b></td>"
-                + $"<td class=\"r\">{N(r.Best)}</td><td class=\"r sm\">{N(r.Mine)}</td><td class=\"r nw\">{history}</td></tr>");
-        }
-        if (oneOff > 0)
-        {
-            sb.Append($"<tr><td colspan=\"7\" class=\"sm\">{(regulars.Count > 0
-                ? L.T($"Y {L.Count(oneOff, "compañero", "compañeros", "", "")} con una sola partida (relleno de equipo), no mostrados.",
-                    $"And {L.Count(oneOff, "", "", "teammate", "teammates")} with a single match (team fill), not shown.")
-                : L.T($"Y {L.Count(oneOff, "compañero más", "compañeros más", "", "")}.", $"And {L.Count(oneOff, "", "", "more teammate", "more teammates")}."))}</td></tr>");
-        }
-        var note = sharing > 0
-            ? L.T("Cofres <b>exactos</b> de los compañeros que comparten sus datos (sus propios replays). Para los demás, solo los <b>vistos</b> en tu replay, que únicamente graba lo que pasa cerca de ti: un mínimo (≥). «Su historial» es todo lo que han contado, contigo o sin ti.",
-                "<b>Exact</b> chests for the teammates who share their data (their own replays). For the others, only the chests <b>seen</b> in your replay, which only records what happens near you: a minimum (≥). \"Their history\" is everything they counted, with you or not.")
-            : L.T("Son los cofres <b>vistos</b> en tu replay, que solo graba lo que pasa cerca de ti: un mínimo (≥), no su total. Para tener sus cifras exactas, usad una carpeta compartida en <b>Ajustes → Equipo</b>, o importa el archivo de un compañero.",
-                "These are the chests <b>seen</b> in your replay, which only records what happens near you: a minimum (≥), not their total. For exact figures, use a shared folder in <b>Settings → Team</b>, or import a teammate's file.");
-        sb.Append($"""
-            </tbody></table></div>
-            <p class="note">{note}</p>
-            </section>
-            """);
     }
 
     /// <summary>Tope "redondo" para la escala del gráfico (1, 2, 2.5, 5 × 10ⁿ), siempre ≥ el valor.</summary>
@@ -721,8 +598,8 @@ public static class ReportWriter
     public static string Csv(TrackerData data)
     {
         var sb = new StringBuilder();
-        sb.AppendLine(L.T("fecha;modo;jugador;puesto;jugadores;cofres;cajas_municion;tesoros;archivo;compañeros_cofres_vistos",
-            "date;mode;player;placement;players;chests;ammo_boxes;treasures;file;teammates_chests_seen"));
+        sb.AppendLine(L.T("fecha;modo;jugador;puesto;jugadores;cofres;cajas_municion;tesoros;archivo",
+            "date;mode;player;placement;players;chests;ammo_boxes;treasures;file"));
 
         foreach (var m in data.Matches.OrderBy(When))
         {
@@ -730,15 +607,13 @@ public static class ReportWriter
             sb.AppendLine(string.Join(";",
                 When(m).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
                 Cell(Pretty.Playlist(m.Playlist)), Cell(m.PlayerName), m.Placement, m.TotalPlayers,
-                m.ChestsOpened, m.AmmoBoxesOpened, Cell(t), Cell(m.ReplayFile),
-                Cell(string.Join(" + ", (m.Teammates ?? new()).Select(x => $"{x.Name}: {x.ChestsSeen}")))));
+                m.ChestsOpened, m.AmmoBoxesOpened, Cell(t), Cell(m.ReplayFile)));
         }
         return sb.ToString();
     }
 
     /// <summary>
-    /// Texto seguro para una celda: sin separadores ni saltos de línea, y sin que Excel lo lea como fórmula
-    /// (los nombres de los jugadores los elige cualquiera).
+    /// Texto seguro para una celda: sin separadores ni saltos de línea, y sin que Excel lo lea como fórmula.
     /// </summary>
     private static string Cell(string? value)
     {

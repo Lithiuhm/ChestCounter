@@ -73,6 +73,26 @@ public sealed class Tracker
     /// <summary>Replays not analyzed yet and not being recorded (what the next scan will read).</summary>
     public int BacklogCount() => UnprocessedFiles().Count(f => ReplayHeaderProbe.IsLive(f.FullName) != true);
 
+    /// <summary>
+    /// Deletes the whole history (a copy of data.json is saved to <paramref name="backupPath"/> first) and marks
+    /// the replays already in the folder as skipped, so that only the next matches are counted. The match being
+    /// played, if any, still counts.
+    /// </summary>
+    public void Reset(string backupPath)
+    {
+        if (File.Exists(_store.DataPath))
+        {
+            File.Copy(_store.DataPath, backupPath, true);
+        }
+        _data.Matches.Clear();
+        _data.ProcessedFiles.Clear();
+        foreach (var f in ReplayFiles().Where(f => ReplayHeaderProbe.IsLive(f.FullName) != true))
+        {
+            _data.ProcessedFiles[FileKey(f)] = "skipped";
+        }
+        _store.SaveData(_data);
+    }
+
     public void MarkSkipped(IEnumerable<FileInfo> files)
     {
         foreach (var f in files)

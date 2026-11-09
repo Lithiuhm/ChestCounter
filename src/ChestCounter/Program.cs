@@ -182,7 +182,7 @@ internal static class Program
             return 0;
         }
 
-        // ---- Primer uso: tres preguntas, en ventanas sencillas -------------------------------------------
+        // ---- Primer uso: aviso de las repeticiones y, si hay replays, si contarlos -------------------------------------------
         if (firstRun)
         {
             MessageBox.Show(
@@ -207,17 +207,7 @@ internal static class Program
                     tracker.MarkSkipped(existing);
                 }
             }
-
-            if (OperatingSystem.IsWindows() && AppInfo.ExePath != null)
-            {
-                var withFortnite = MessageBox.Show(
-                    L.T("¿Abrir el contador automáticamente cuando empiece Fortnite?\n\n" +
-                        "Sin él, tus partidas no se cuentan. Se cierra solo al cerrar Fortnite. Lo puedes cambiar en Ajustes.",
-                        "Open the counter automatically when Fortnite starts?\n\n" +
-                        "Without it, your matches are not counted. It closes by itself when you close Fortnite. You can change this in Settings."),
-                    "ChestCounter", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
-                config.StartWithFortnite = withFortnite && FortniteWatch.Apply(true, dataDir);
-            }
+            // "Abrir con Fortnite" queda desactivado: se activa en Ajustes.
         }
         store.SaveConfig(config);
 

@@ -44,20 +44,6 @@ public sealed class TreasureFind
     public List<string> AlsoPossible { get; set; } = new();
 }
 
-/// <summary>
-/// A teammate of the tracked player in one match. Only the chests opened near the recording player are in the
-/// replay (the game does not send what happens far away), so <see cref="ChestsSeen"/> is a minimum.
-/// </summary>
-public sealed class TeammateRecord
-{
-    public string Name { get; set; } = "";
-    public string? EpicId { get; set; }
-    /// <summary>Chests this teammate was seen opening or destroying.</summary>
-    public int ChestsSeen { get; set; }
-    /// <summary>Same chests by kind (Chest, Rare chest...).</summary>
-    public Dictionary<string, int> Kinds { get; set; } = new();
-}
-
 public sealed class MatchRecord
 {
     public string SessionId { get; set; } = "";
@@ -85,8 +71,18 @@ public sealed class MatchRecord
     public bool IsBattleRoyale { get; set; } = true;
     public List<ChestRecord> Chests { get; set; } = new();
     public List<TreasureFind> TreasureFinds { get; set; } = new();
-    /// <summary>Teammates of the match (empty in solo). Null for matches analyzed before analyzer version 10.</summary>
-    public List<TeammateRecord>? Teammates { get; set; }
+
+    /// <summary>
+    /// Copy that leaves out the chests destroyed instead of opened, for the "count destroyed chests" setting.
+    /// The saved history always keeps them.
+    /// </summary>
+    public MatchRecord WithoutDestroyed()
+    {
+        var copy = (MatchRecord)MemberwiseClone();
+        copy.Chests = Chests.Where(c => !c.Destroyed).ToList();
+        copy.ChestsOpened = Math.Max(0, ChestsOpened - Chests.Count(c => c.Destroyed));
+        return copy;
+    }
 }
 
 public sealed class Config
@@ -127,11 +123,8 @@ public sealed class Config
     /// </summary>
     public Dictionary<string, int> InitialChests { get; set; } = new();
 
-    /// <summary>
-    /// Folder shared with the teammates (OneDrive, Google Drive, Dropbox...): each counter writes its summary there and
-    /// reads the others' to show their exact chests. Null = not shared.
-    /// </summary>
-    public string? TeamFolder { get; set; }
+    /// <summary>Count a closed chest that was destroyed (broken) as opened. The history always keeps both.</summary>
+    public bool CountDestroyed { get; set; } = true;
 }
 
 public sealed class TrackerData

@@ -24,19 +24,11 @@ public sealed class SettingsForm : Form
     private readonly PillButton[] _updates = new PillButton[UpdateModes.Length];
     private readonly TextBox _folder;
     private readonly TextBox _initial;
-    private readonly Store _store;
-    private readonly TextBox _team;
-    private readonly PillButton _teamClear;
-    private readonly Label _teamState;
-    private readonly Card _teamBadge;
-    private readonly Label _teamHint;
-    private readonly System.Windows.Forms.Timer _teamTimer = new() { Interval = 1000 };
     private bool _loading;
 
     public SettingsForm(Monitor monitor, Store store)
     {
         _monitor = monitor;
-        _store = store;
         var config = monitor.Config;
 
         Text = L.T("Ajustes", "Settings");
@@ -50,7 +42,7 @@ public sealed class SettingsForm : Form
         MinimizeBox = false;
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(592, 499);
+        ClientSize = new Size(592, 381);
         Icon = AppIcon.Load();
 
         // Cabecera, como en la ventana principal.
@@ -60,9 +52,9 @@ public sealed class SettingsForm : Form
 
         // ---- Columna izquierda ---------------------------------------------------------------
 
-        // Inicio: dos interruptores.
-        var start = AddCard(LeftX, 40, LeftW, 100, 16);
-        CardTitle(start, L.T("Inicio", "Startup"));
+        // Opciones: tres interruptores.
+        var start = AddCard(LeftX, 40, LeftW, 140, 16);
+        CardTitle(start, L.T("Opciones", "Options"));
         _fortnite = AddToggleRow(start, L.T("Abrir con Fortnite", "Open with Fortnite"),
             L.T("Cuenta tus partidas sin pensar en ello", "Counts your matches without thinking about it"), 24, config.StartWithFortnite);
         _fortnite.CheckedChanged += (_, _) =>
@@ -83,9 +75,12 @@ public sealed class SettingsForm : Form
         };
         _report = AddToggleRow(start, L.T("Abrir el informe al iniciar", "Open the report at startup"), null, 64, config.OpenReportOnStart);
         _report.CheckedChanged += (_, _) => { if (!_loading) _monitor.Change(c => c.OpenReportOnStart = _report.Checked); };
+        var destroyed = AddToggleRow(start, L.T("Contar cofres rotos", "Count destroyed chests"),
+            L.T("Romper uno cerrado cuenta como abrirlo", "Breaking a closed one counts as opening"), 100, config.CountDestroyed);
+        destroyed.CheckedChanged += (_, _) => { if (!_loading) _monitor.SetCountDestroyed(destroyed.Checked); };
 
         // Actualizaciones: tres píldoras.
-        var updates = AddCard(LeftX, 149, LeftW, 74, 14);
+        var updates = AddCard(LeftX, 189, LeftW, 74, 14);
         CardTitle(updates, L.T("Actualizaciones", "Updates"));
         var pillW = (LeftW - 26 - 2 * 6) / 3;
         for (var i = 0; i < UpdateModes.Length; i++)
@@ -100,7 +95,7 @@ public sealed class SettingsForm : Form
         SelectUpdateMode(mode < 0 ? 0 : mode, save: false);
 
         // Carpeta de replays y datos.
-        var folderCard = AddCard(LeftX, 232, LeftW, 94, 14);
+        var folderCard = AddCard(LeftX, 272, LeftW, 94, 14);
         CardTitle(folderCard, L.T("Carpeta de replays", "Replays folder"));
         _folder = AddField(folderCard, new Point(13, 26), LeftW - 26 - 72, config.DemosFolder);
         var browse = new PillButton { Text = L.T("Cambiar", "Change"), Location = new Point(LeftW - 13 - 66, 26), Size = new Size(66, 30), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold) };
@@ -177,48 +172,24 @@ public sealed class SettingsForm : Form
         Lbl(keys, L.T("Ctrl+Mayús+O mostrar  ·  Ctrl+Mayús+L fijar", "Ctrl+Shift+O show  ·  Ctrl+Shift+L lock"),
             8.0f, FontStyle.Bold, Theme.Ink, new Point(13, 21), new Size(RightW - 26, 18));
 
-        // ---- Equipo: ancho completo ----------------------------------------------------------
-        const int TeamW = RightX + RightW - LeftX;
-        var teamCard = AddCard(LeftX, 335, TeamW, 104, 16);
-        CardTitle(teamCard, L.T("Equipo · cofres exactos de tus compañeros", "Team · your teammates' exact chests"));
-        // Estado arriba a la derecha: su ancho sigue al texto (ver RefreshTeam) y va por delante del título.
-        _teamBadge = new Card { Location = new Point(TeamW - 13 - 70, 6), Size = new Size(70, 18), Radius = 9, BackColor = Theme.Panel };
-        _teamState = Lbl(_teamBadge, "", 7.0f, FontStyle.Bold, Theme.Muted, new Point(0, 0), new Size(70, 18), ContentAlignment.MiddleCenter);
-        teamCard.Controls.Add(_teamBadge);
-        _teamBadge.BringToFront();
-
-        // Fila 1: carpeta compartida (OneDrive, Google Drive, Dropbox...) con Elegir / Quitar.
-        const int Btn = 84, Gap = 6;
-        _team = AddField(teamCard, new Point(13, 30), TeamW - 26 - 2 * (Btn + Gap), "");
-        var chooseTeam = new PillButton { Text = L.T("Elegir", "Choose"), Location = new Point(TeamW - 13 - 2 * Btn - Gap, 30), Size = new Size(Btn, 30), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold) };
-        chooseTeam.Click += (_, _) => ChooseTeamFolder();
-        teamCard.Controls.Add(chooseTeam);
-        _teamClear = new PillButton { Text = L.T("Quitar", "Remove"), Location = new Point(TeamW - 13 - Btn, 30), Size = new Size(Btn, 30), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold) };
-        _teamClear.Click += (_, _) => { _monitor.ChangeTeamFolder(null); RefreshTeam(); };
-        teamCard.Controls.Add(_teamClear);
-
-        // Fila 2: explicación y, sin carpeta compartida, pasarse los archivos a mano.
-        _teamHint = Lbl(teamCard, "", 7.5f, FontStyle.Regular, Theme.Muted, new Point(13, 66), new Size(TeamW - 26 - 2 * (Btn + Gap) - 8, 32));
-        var import = new PillButton { Text = L.T("Importar…", "Import…"), Location = new Point(TeamW - 13 - 2 * Btn - Gap, 66), Size = new Size(Btn, 30), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold) };
-        import.Click += (_, _) => ImportTeamFile();
-        teamCard.Controls.Add(import);
-        var export = new PillButton { Text = L.T("Exportar…", "Export…"), Location = new Point(TeamW - 13 - Btn, 66), Size = new Size(Btn, 30), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold) };
-        export.Click += (_, _) => ExportTeamFile();
-        teamCard.Controls.Add(export);
-
-        RefreshTeam();
-        _teamTimer.Tick += (_, _) => RefreshTeam();
-        _teamTimer.Start();
-        FormClosed += (_, _) => _teamTimer.Dispose();
-
-        Lbl(this, L.T("Los cambios se guardan al instante", "Changes are saved instantly"), 8.0f, FontStyle.Regular, Theme.Muted,
-            new Point(LeftX + 2, 459), new Size(LeftW, 18));
+        // Restablecer estadísticas: borra el historial (con confirmación y copia de seguridad).
+        var reset = new PillButton
+        {
+            Text = L.T("Restablecer estadísticas…", "Reset statistics…"),
+            Location = new Point(RightX, 286),
+            Size = new Size(RightW, 32),
+            Radius = 10,
+            Font = Theme.Text(8.5f, FontStyle.Bold),
+            ForeColor = Theme.Red,
+        };
+        reset.Click += (_, _) => ResetStats();
+        Controls.Add(reset);
 
         // Cerrar, en el sitio de los botones de la ventana principal.
         var close = new PillButton
         {
             Text = L.T("Cerrar", "Close"),
-            Location = new Point(RightX, 448),
+            Location = new Point(RightX, 326),
             Size = new Size(RightW, 40),
             Radius = 12,
             BackColor = Theme.Accent,
@@ -279,135 +250,6 @@ public sealed class SettingsForm : Form
         }
     }
 
-    // ---- Equipo -------------------------------------------------------------------------------
-
-    /// <summary>Carpeta, estado y explicación según lo que haya (se refresca cada segundo: el informe se rehace aparte).</summary>
-    private void RefreshTeam()
-    {
-        var folder = _monitor.Config.TeamFolder;
-        var hasFolder = !string.IsNullOrWhiteSpace(folder);
-        var missing = hasFolder && !Directory.Exists(folder);
-        _team.Text = hasFolder ? folder! : L.T("Sin carpeta compartida", "No shared folder");
-        _team.ForeColor = hasFolder ? Theme.Ink : Theme.Muted;
-        _teamClear.Enabled = hasFolder;
-        _teamClear.ForeColor = hasFolder ? Theme.Ink : Theme.Muted;
-
-        var shared = ReportWriter.LastShared;
-        var names = string.Join(", ", shared.Select(e => e.Player).OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase));
-        (string text, Color color) state = missing ? (L.T("● CARPETA NO ENCONTRADA", "● FOLDER NOT FOUND"), Theme.Red)
-            : shared.Count > 0 ? (L.T($"● {shared.Count} {(shared.Count == 1 ? "COMPARTE" : "COMPARTEN")}", $"● {shared.Count} SHARING"), Theme.Mint)
-            : hasFolder ? (L.T("● ESPERANDO", "● WAITING"), Theme.Amber)
-            : (L.T("● NO", "● OFF"), Theme.Muted);
-        if (_teamState.Text != state.text)
-        {
-            _teamState.Text = state.text;
-            _teamState.ForeColor = state.color;
-            var width = Math.Max(70, TextRenderer.MeasureText(state.text, _teamState.Font).Width + 18);
-            var right = _teamBadge.Right;
-            _teamBadge.SetBounds(right - width, _teamBadge.Top, width, _teamBadge.Height);
-            _teamState.Width = width;
-        }
-
-        var hint = missing
-            ? L.T("No se encuentra la carpeta: comprueba que la nube esté sincronizada o elige otra.", "Folder not found: check that your cloud app is syncing, or choose another one.")
-            : shared.Count > 0
-            ? L.T($"Datos de {names}.", $"Data from {names}.")
-            : hasFolder
-                ? L.T("Tus compañeros deben elegir esta misma carpeta en su ChestCounter.", "Your teammates must choose this same folder in their ChestCounter.")
-                : L.T("Elige una carpeta que compartáis (OneDrive, Google Drive, Dropbox…) o pasaos el archivo con Exportar / Importar.",
-                    "Choose a folder you share (OneDrive, Google Drive, Dropbox…) or swap files with Export / Import.");
-        if (_teamHint.Text != hint)
-        {
-            _teamHint.Text = hint;
-        }
-    }
-
-    private void ChooseTeamFolder()
-    {
-        var current = _monitor.Config.TeamFolder;
-        using var dialog = new FolderBrowserDialog
-        {
-            Description = L.T("Carpeta compartida con tu equipo", "Folder shared with your team"),
-            UseDescriptionForTitle = true,
-            SelectedPath = !string.IsNullOrWhiteSpace(current) && Directory.Exists(current) ? current : "",
-        };
-        if (dialog.ShowDialog(this) != DialogResult.OK)
-        {
-            return;
-        }
-        var chosen = dialog.SelectedPath;
-        if (Path.GetFullPath(chosen).TrimEnd('\\').Equals(Path.GetFullPath(_store.Folder).TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
-        {
-            MessageBox.Show(this, L.T("Elige una carpeta compartida con tus compañeros, no la de tus datos.", "Choose a folder shared with your teammates, not your data folder."),
-                L.T("Equipo", "Team"), MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return;
-        }
-        _monitor.ChangeTeamFolder(chosen);
-        RefreshTeam();
-    }
-
-    private void ImportTeamFile()
-    {
-        using var dialog = new OpenFileDialog
-        {
-            Title = L.T("Importar los cofres de un compañero", "Import a teammate's chests"),
-            Filter = L.T("Archivos de ChestCounter|*" + TeamShare.Extension + ";data.json|JSON|*.json",
-                "ChestCounter files|*" + TeamShare.Extension + ";data.json|JSON|*.json"),
-        };
-        if (dialog.ShowDialog(this) != DialogResult.OK)
-        {
-            return;
-        }
-        try
-        {
-            var players = TeamShare.Import(_store, _monitor.OwnKeys, dialog.FileName);
-            _monitor.RequestReport();
-            MessageBox.Show(this, players.Count > 0
-                    ? L.T($"Importado: {string.Join(", ", players)}. El informe se actualiza en unos segundos.", $"Imported: {string.Join(", ", players)}. The report updates in a few seconds.")
-                    : L.T("Este archivo es tuyo: no hay nada que importar.", "This file is yours: nothing to import."),
-                L.T("Equipo", "Team"), MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-        catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException)
-        {
-            MessageBox.Show(this, L.T("No es un archivo de ChestCounter (el resumen de un compañero o su data.json).",
-                    "Not a ChestCounter file (a teammate's summary or their data.json)."),
-                L.T("Equipo", "Team"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
-    }
-
-    private void ExportTeamFile()
-    {
-        var export = _monitor.OwnExport();
-        if (export == null)
-        {
-            MessageBox.Show(this, L.T("Aún no hay partidas que compartir.", "No matches to share yet."), L.T("Equipo", "Team"), MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return;
-        }
-        using var dialog = new SaveFileDialog
-        {
-            Title = L.T("Exportar tus cofres para tu equipo", "Export your chests for your team"),
-            Filter = L.T("Archivo de ChestCounter|*" + TeamShare.Extension, "ChestCounter file|*" + TeamShare.Extension),
-            FileName = TeamShare.FileName(export),
-            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-            OverwritePrompt = true,
-        };
-        if (dialog.ShowDialog(this) != DialogResult.OK)
-        {
-            return;
-        }
-        try
-        {
-            File.WriteAllText(dialog.FileName, TeamShare.Serialize(export));
-            MessageBox.Show(this, L.T($"Guardado ({L.Count(export.Matches.Count, "partida", "partidas", "match", "matches")}). Pásaselo a tus compañeros: lo abren con Ajustes → Importar.",
-                    $"Saved ({L.Count(export.Matches.Count, "partida", "partidas", "match", "matches")}). Send it to your teammates: they open it with Settings → Import."),
-                L.T("Equipo", "Team"), MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            MessageBox.Show(this, L.T($"No se pudo guardar: {ex.Message}", $"Could not save: {ex.Message}"), L.T("Equipo", "Team"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
-    }
-
     // ---- Piezas de la ventana ----------------------------------------------------------------
 
     private Card AddCard(int x, int y, int w, int h, int radius)
@@ -422,6 +264,25 @@ public sealed class SettingsForm : Form
         Lbl(card, text, 8.0f, FontStyle.Regular, Theme.Muted, new Point(13, 7), new Size(card.Width - 100, 15));
 
     /// <summary>Texto (y una línea gris opcional) a la izquierda y un interruptor a la derecha; clicar el texto también lo cambia.</summary>
+    /// <summary>Pide confirmación y borra todo el historial (se guarda una copia de data.json antes).</summary>
+    private void ResetStats()
+    {
+        var answer = MessageBox.Show(this,
+            L.T("Se borrarán todas tus partidas, cofres y tesoros guardados, y los cofres de antes del contador. El contador empezará de cero con tu próxima partida (los replays que ya tienes no se vuelven a contar).\n\nSe guarda una copia de seguridad en la carpeta de tus datos.\n\n¿Restablecer las estadísticas?",
+                "All your saved matches, chests and treasures will be deleted, as well as the chests before the counter. The counter starts from zero with your next match (the replays you already have are not counted again).\n\nA backup copy is saved in your data folder.\n\nReset the statistics?"),
+            L.T("Restablecer estadísticas", "Reset statistics"), MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
+        if (answer != DialogResult.Yes)
+        {
+            return;
+        }
+        var backup = _monitor.ResetStats();
+        _loading = true;
+        _initial.Text = "0";
+        _loading = false;
+        MessageBox.Show(this, L.T($"Estadísticas restablecidas. Copia de seguridad: {Path.GetFileName(backup)}", $"Statistics reset. Backup copy: {Path.GetFileName(backup)}"),
+            L.T("Restablecer estadísticas", "Reset statistics"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+    }
+
     private static ToggleSwitch AddToggleRow(Card card, string text, string? hint, int top, bool value)
     {
         var toggle = new ToggleSwitch { Location = new Point(card.Width - 13 - 40, top + 5), Checked = value };

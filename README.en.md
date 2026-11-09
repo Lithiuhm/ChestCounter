@@ -27,7 +27,7 @@ Fortnite can record a **replay file** of every match on your PC. Chest Counter r
 - ✅ **Only reads replay files**: the `.replay` files Fortnite writes to `%LOCALAPPDATA%\FortniteGame\Saved\Demos`. They are opened read-only and never modified.
 - ✅ **No game modification**: nothing in the Fortnite installation folder is touched, no file is added or patched.
 - ✅ **No access to the game's memory**: the tool never reads, writes or injects anything into the Fortnite process. It does not interact with the running game at all.
-- ✅ **No data sent anywhere**: no login, no Epic account access, no telemetry. The only network access is the check for a new version on GitHub, which can be turned off in the settings. If you share with your team, only a summary of your matches is written to the folder you choose.
+- ✅ **No data sent anywhere**: no login, no Epic account access, no telemetry. The only network access is the check for a new version on GitHub, which can be turned off in the settings.
 - ✅ **Lightweight**: runs at low priority (and in "efficiency mode" on Windows 11), sleeps between matches, and the overlay is only redrawn when a number changes.
 
 > [!IMPORTANT]
@@ -41,7 +41,7 @@ Because Fortnite only writes the replay's decryption key when the match ends, ch
 2. Turn on replays in Fortnite (see above).
 3. Run `ChestCounter.exe`.
    > Windows may show *"Windows protected your PC"* because the exe is not signed. Click *More info → Run anyway*.
-4. A short setup (Yes / No dialogs) checks your **replays folder**, offers to count the **replays already on your PC**, and offers to **open the counter automatically when Fortnite starts**. The language follows Windows: **Spanish** if Windows is in Spanish, **English** otherwise.
+4. A short setup (Yes / No dialogs) checks your **replays folder** and offers to count the **replays already on your PC**. **Open with Fortnite** is off: turn it on in **Settings** if you want it. The language follows Windows: **Spanish** if Windows is in Spanish, **English** otherwise.
 
 <p align="center"><img src="docs/setup.png" alt="First launch setup" width="760"></p>
 
@@ -53,7 +53,7 @@ If you count your existing replays, a progress bar runs in the window while the 
 <p align="center"><img src="docs/main.png" alt="Main window" width="820"></p>
 
 > [!TIP]
-> Fortnite only keeps a limited number of unsaved replays and deletes the oldest ones, and a match played while the counter is closed is not counted. Turn on **Open with Fortnite** (offered during the setup, or in the window's settings) so you never have to think about it.
+> Matches played while the counter is closed are counted the next time you open it, but Fortnite only keeps a limited number of unsaved replays and deletes the oldest ones. To never have to think about it, turn on **Open with Fortnite** in the settings (off by default).
 
 ## Open with Fortnite
 
@@ -87,7 +87,7 @@ The window has three buttons: **Overlay** (show or hide the overlay; green dot =
 
 The window can be **resized and maximized**: everything grows in proportion (cards, figures and chart) and no text gets cut off; if a figure does not fit its card, its font shrinks a little.
 
-In **Settings** you can open with Fortnite, open the report at startup, choose the updates, type the **chests opened before the counter** (an estimate added to your total), copy the **overlay address for OBS**, change the replays folder and share your chests with your **team** (see [Teammates](#teammates)). The installed version is shown at the bottom.
+In **Settings** you can open with Fortnite, open the report at startup, **count destroyed chests** as opened (on by default), choose the updates, type the **chests opened before the counter** (an estimate added to your total), copy the **overlay address for OBS** and change the replays folder. The installed version is shown at the bottom.
 
 <p align="center"><img src="docs/settings.png" alt="Settings" width="400"></p>
 
@@ -101,7 +101,6 @@ From top to bottom you will see: the total chests, the last match, the session, 
 - **Chests per day:** chart of the last 30 days with a scale, the daily average (dashed line) and today in cyan. Hover a bar to see the day and its chests.
 - **By chest type** and **where the treasures come from**, with a proportion bar on each row. Ammo boxes, food boxes and loot cannons are listed apart, not in the total.
 - **Treasures obtained:** each treasure with its match, the moment and the source chest.
-- **Teammates** (in duos, trios and squads): each teammate with the matches played together, their chests (exact if they share their data, otherwise those seen), their average, best, your chests in those same matches and their history.
 - **Latest matches** (the 100 most recent): mode, placement (🏆 victory in gold, top 10 in green), chests and treasures.
 
 <p align="center"><img src="docs/report.png" alt="Report" width="820"></p>
@@ -113,27 +112,6 @@ From top to bottom you will see: the total chests, the last match, the session, 
 - A treasure that came from something other than a chest (loot cannon, ammo box…) is highlighted with ⚑ in the report.
 
 The game only sends prize ids, not names: `treasures.json` maps them to names and can be edited with Notepad. New ids are added automatically and the tool tells you when one needs a name.
-
-## Teammates
-
-In duos, trios and squads, each match also stores your teammates and the chests they opened. The report gathers their history (matches together, their chests, average, best and your chests in those matches), and in **Latest matches** the **Team** column adds up your chests and theirs.
-
-<p align="center"><img src="docs/teammates.png" alt="Teammates in the report" width="820"></p>
-
-### Chests seen (nothing to do)
-
-They come from **your** replay, and Fortnite only records what happens near you. When a teammate moves away, their chests are not seen: the figure is a **minimum** and is shown with **≥**. Your own total does not change.
-
-### Exact chests (sharing)
-
-If your teammates also use Chest Counter, you can share your data and each of you sees the others' **exact** chests, taken from their own replays. **Settings → Team** offers two ways:
-
-- **Shared folder** (recommended): all choose the same OneDrive, Google Drive, Dropbox… folder. After each match, the counter leaves your summary there and reads the others'. Everything updates by itself.
-- **Export / Import**: export your file (`.chestcounter.json`) and send it over Discord, WhatsApp…; your teammate opens it with **Import**. Their `data.json` can be imported too.
-
-The summary only holds **your** matches: date, mode, placement, chests and number of treasures. It holds no names of other players. Chest Counter sends nothing anywhere: it only writes to the folder you choose, and your cloud app syncs it.
-
-Matches are paired by their id. Being in the same match with the same placement counts as playing together even when the replay is gone, so older matches are recovered too. Teammates who share are marked **✓ shares**, and **Their history** shows everything they counted, with you or not.
 
 ## Profiles (several accounts on one PC)
 
@@ -151,11 +129,10 @@ Everything is stored in `%APPDATA%\ChestCounter`:
 |---|---|
 | `report.html` | The report (opens in your browser). |
 | `overlay.html` | File copy of the overlay (for OBS, prefer http://localhost:7373/). |
-| `matches.csv` | One line per match, for Excel or Google Sheets (with the chests seen for each teammate). |
+| `matches.csv` | One line per match, for Excel or Google Sheets. |
 | `data.json` | Your full history. **Back it up** if you change PC. |
 | `config.json` | Profile, replays folder, overlay position and settings. |
 | `treasures.json` | Names of the treasure hunt prizes. |
-| `team\` | Files imported from your teammates. |
 | `errors.log` | Details of unreadable replays, to attach to a bug report. |
 
 Fortnite deletes old replays, but **your history is not deleted**: each match is saved in `data.json` as soon as it is counted, and the report and statistics come from there. So even when the replay no longer exists, the match stays in your totals.
@@ -166,7 +143,9 @@ To start over: run `ChestCounter.exe --reset-config`, or delete that folder.
 
 **Nothing is counted.** Check that replays are turned on in Fortnite, and that the tool is running when the match ends. The window tells you if the replays folder is missing or empty.
 
-**Are ammo boxes counted?** No. Ammo boxes, food boxes and loot cannons are listed separately in the report and are not part of the chest total. Chests you **destroy** instead of opening are counted.
+**Are ammo boxes counted?** No. Ammo boxes, food boxes and loot cannons are listed separately in the report and are not part of the chest total. Chests you **destroy** instead of opening are counted; you can turn this off in **Settings → Count destroyed chests** (nothing is deleted: turning it back on brings them back).
+
+**How do I start from zero?** In **Settings → Reset statistics…**. The whole history is deleted (with a confirmation and a `data-backup-….json` copy in your data folder) and only the next matches are counted.
 
 **Creative modes?** Only Battle Royale matches are counted; other modes are skipped.
 

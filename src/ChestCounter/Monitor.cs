@@ -56,9 +56,6 @@ public sealed class Monitor
     private volatile bool _reportRequested;
     private volatile string? _shownKey;
     private volatile string? _shownName;
-    private volatile IReadOnlySet<string> _ownKeys = new HashSet<string>();
-    private DateTime _nextTeamCheck = DateTime.UtcNow.AddSeconds(20);
-    private string? _teamSignature;
     private DateTime _nextScan = DateTime.UtcNow;
     private volatile UpdateInfo? _update;
     private bool _updateAnnounced;
@@ -147,6 +144,28 @@ public sealed class Monitor
 
     public void SetProfile(string key) => Change(c => c.Profile = key);
 
+    /// <summary>Contar como abierto un cofre cerrado que se rompe. Rehace el informe enseguida.</summary>
+    public void SetCountDestroyed(bool on)
+    {
+        _reportRequested = true;
+        Change(c => c.CountDestroyed = on);
+    }
+
+    private volatile string? _resetBackup;
+
+    /// <summary>
+    /// Restablece las estadísticas: borra todo el historial (y los cofres de antes del contador) y empieza de cero.
+    /// Los replays que ya están en la carpeta no se vuelven a contar. Antes se guarda una copia de data.json.
+    /// Devuelve la ruta de esa copia. Se hace en el hilo de vigilancia, que es el dueño de los datos.
+    /// </summary>
+    public string ResetStats()
+    {
+        var backup = Path.Combine(_store.Folder, $"data-backup-{DateTime.Now:yyyyMMdd-HHmmss}.json");
+        _resetBackup = backup;
+        _wake.Set();
+        return backup;
+    }
+
     /// <summary>Nombre del perfil mostrado, o null si aún no hay partidas.</summary>
     public string? ShownProfileName => _shownName;
 
@@ -179,31 +198,6 @@ public sealed class Monitor
         });
         _reportRequested = true;
         _wake.Set();
-    }
-
-    /// <summary>Carpeta compartida con el equipo (null = no compartir). Rehace el informe enseguida.</summary>
-    public void ChangeTeamFolder(string? folder)
-    {
-        Change(c => c.TeamFolder = string.IsNullOrWhiteSpace(folder) ? null : folder);
-        RequestReport();
-    }
-
-    /// <summary>Rehace el informe (y publica el resumen en la carpeta de equipo) en el hilo de vigilancia.</summary>
-    public void RequestReport()
-    {
-        _reportRequested = true;
-        _wake.Set();
-    }
-
-    /// <summary>Cuentas de este PC (para no importar tus propios datos como si fueran de un compañero).</summary>
-    public IReadOnlySet<string> OwnKeys => _ownKeys;
-
-    /// <summary>Resumen para compartir de la cuenta mostrada (copia de la lista: el hilo de vigilancia puede añadir partidas).</summary>
-    public TeamExport? OwnExport()
-    {
-        var snapshot = new TrackerData { Matches = _data.Matches.ToArray().ToList() };
-        var exports = TeamShare.Build(snapshot);
-        return exports.FirstOrDefault(e => e.Key == _shownKey) ?? exports.FirstOrDefault();
     }
 
     public void ChangeDemosFolder(string folder)
@@ -305,6 +299,28 @@ public sealed class Monitor
             first = false;
             _publishRequested = false;
 
+            if (_resetBackup is { } backup)
+            {
+                _resetBackup = null;
+                try
+                {
+                    _tracker.Reset(backup);
+                    lock (_cfgGate)
+                    {
+                        _config.InitialChests.Clear();
+                        _config.Profile = null;
+                        SaveQuietly();
+                    }
+                    _reportRequested = true;
+                    changed = true;
+                }
+                catch (Exception ex)
+                {
+                    ErrorLog.Write("Restablecer estadísticas", ex);
+                    _notice = L.T($"No se pudo restablecer: {ex.Message}", $"Could not reset: {ex.Message}");
+                }
+            }
+
             try
             {
                 if (DateTime.UtcNow >= _nextScan)
@@ -327,26 +343,6 @@ public sealed class Monitor
             }
 
             changed |= CheckUpdate();
-
-            // Archivos de los compañeros: si alguno cambió (carpeta en la nube sincronizada), se rehace el informe.
-            if (DateTime.UtcNow >= _nextTeamCheck)
-            {
-                _nextTeamCheck = DateTime.UtcNow.AddSeconds(20);
-                try
-                {
-                    var signature = TeamShare.Signature(_store, _config);
-                    if (_teamSignature != null && signature != _teamSignature)
-                    {
-                        _reportRequested = true;
-                    }
-                    _teamSignature = signature;
-                }
-                catch (Exception ex)
-                {
-                    ErrorLog.Write("Carpeta de equipo", ex);
-                }
-            }
-
             if (_reportRequested)
             {
                 _reportRequested = false;
@@ -368,8 +364,7 @@ public sealed class Monitor
         var shown = Profiles.Current(_data, _config);
         _shownKey = shown?.Key;
         _shownName = shown?.Name;
-        _ownKeys = Profiles.List(_data).SelectMany(p => new[] { p.Key, p.Name }).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var view = OverlayModel.Build(Profiles.View(_data, _config), _tracker.LiveMatch, _tracker.IsLive, Profiles.InitialChests(_data, _config));
+        var view = OverlayModel.Build(Profiles.View(_data, _config), Profiles.Adjust(_tracker.LiveMatch, _config), _tracker.IsLive, Profiles.InitialChests(_data, _config));
         ReportWriter.WriteOverlay(_store, view);
         ObsServer.Update(view);
         if (OperatingSystem.IsWindows() && NativeOverlay.IsRunning)
@@ -385,16 +380,13 @@ public sealed class Monitor
     }
 
     /// <summary>
-    /// Estadísticas del perfil mostrado, solo sobre las últimas 100 partidas (lo que Epic Games guarda de los replays),
-    /// con la partida en curso incluida.
+    /// Estadísticas del perfil mostrado sobre todo su historial guardado (no solo los replays que siguen en disco),
+    /// con la partida en curso incluida. Son las mismas cifras que el informe.
     /// </summary>
     private ChestStats BuildStats()
     {
-        var matches = Profiles.View(_data, _config).Matches
-            .OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc)
-            .Take(100)
-            .ToList();
-        var live = _tracker.IsLive ? _tracker.LiveMatch : null;
+        var matches = Profiles.View(_data, _config).Matches;
+        var live = _tracker.IsLive ? Profiles.Adjust(_tracker.LiveMatch, _config) : null;
         var today = DateTime.Now.Date;
 
         var perDay = new Dictionary<DateTime, int>();

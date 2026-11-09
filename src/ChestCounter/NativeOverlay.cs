@@ -14,7 +14,7 @@ public sealed record OverlayRow(string Label, string Value, bool Treasure = fals
 
 /// <param name="Current">Right counter (match in progress, or last match); null = "—".</param>
 /// <param name="CurrentLive">Right counter is the match in progress (green).</param>
-/// <param name="Badge">Header badge ("● EN DIRECTO" / "● LIVE", "● EN PARTIDA" / "● MATCH IN PROGRESS") or null.</param>
+/// <param name="Badge">Header badge ("● EN DIRECTO" / "● LIVE") or null.</param>
 public sealed record OverlayView(string Total, string? Current, string CurrentCaption, bool CurrentLive, string? Badge, IReadOnlyList<OverlayRow> Rows);
 
 [SupportedOSPlatform("windows")]

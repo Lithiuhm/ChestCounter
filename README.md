@@ -27,7 +27,7 @@ Fortnite puede grabar un **archivo de repetición** de cada partida en tu PC. Co
 - ✅ **Solo lee archivos de repetición**: los archivos `.replay` que Fortnite escribe en `%LOCALAPPDATA%\FortniteGame\Saved\Demos`. Se abren en modo solo lectura y nunca se modifican.
 - ✅ **Sin modificar el juego**: no se toca nada de la carpeta de instalación de Fortnite, no se añade ni se parchea ningún archivo.
 - ✅ **Sin acceso a la memoria del juego**: la herramienta nunca lee, escribe ni inyecta nada en el proceso de Fortnite. No interactúa en absoluto con el juego en marcha.
-- ✅ **No envía datos a ningún sitio**: sin inicio de sesión, sin acceso a tu cuenta de Epic, sin telemetría. El único acceso a la red es la comprobación de nuevas versiones en GitHub, que se puede desactivar en los ajustes. Si compartes con tu equipo, solo se escribe un resumen de tus partidas en la carpeta que tú elijas.
+- ✅ **No envía datos a ningún sitio**: sin inicio de sesión, sin acceso a tu cuenta de Epic, sin telemetría. El único acceso a la red es la comprobación de nuevas versiones en GitHub, que se puede desactivar en los ajustes.
 - ✅ **Ligero**: funciona con prioridad baja (y en "modo de eficiencia" en Windows 11), duerme entre partidas, y el overlay solo se vuelve a dibujar cuando cambia un número.
 
 > [!IMPORTANT]
@@ -41,7 +41,7 @@ Como Fortnite solo guarda la clave de descifrado de la repetición cuando termin
 2. Activa las repeticiones en Fortnite (ver arriba).
 3. Ejecuta `ChestCounter.exe`.
    > Windows puede mostrar *"Windows protegió tu PC"* porque el exe no está firmado. Haz clic en *Más información → Ejecutar de todas formas*.
-4. Una breve configuración inicial (cuadros de diálogo Sí / No) comprueba tu **carpeta de repeticiones**, ofrece contar las **repeticiones que ya tienes en el PC** y ofrece **abrir el contador automáticamente cuando se inicie Fortnite**. El idioma sigue al de Windows: **español** si Windows está en español, **inglés** en cualquier otro caso.
+4. Una breve configuración inicial (cuadros de diálogo Sí / No) comprueba tu **carpeta de repeticiones** y ofrece contar las **repeticiones que ya tienes en el PC**. **Abrir con Fortnite** está desactivado: si lo quieres, actívalo en **Ajustes**. El idioma sigue al de Windows: **español** si Windows está en español, **inglés** en cualquier otro caso.
 
 <p align="center"><img src="docs/setup.png" alt="Configuración del primer inicio" width="760"></p>
 
@@ -53,7 +53,7 @@ Si cuentas tus repeticiones existentes, una barra de progreso avanza en la venta
 <p align="center"><img src="docs/main.png" alt="Ventana principal" width="820"></p>
 
 > [!TIP]
-> Fortnite solo guarda un número limitado de repeticiones no guardadas y borra las más antiguas, y una partida jugada mientras el contador está cerrado no se cuenta. Activa **Abrir con Fortnite** (se ofrece en la configuración inicial, o en los ajustes de la ventana) para no tener que pensar en ello.
+> Las partidas que juegas con el contador cerrado se cuentan la próxima vez que lo abras, pero Fortnite solo guarda un número limitado de repeticiones no guardadas y borra las más antiguas. Si quieres no tener que pensar en ello, activa **Abrir con Fortnite** en los ajustes (desactivado por defecto).
 
 ## Abrir con Fortnite
 
@@ -87,7 +87,7 @@ La ventana tiene tres botones: **Overlay** (mostrar u ocultar el overlay; punto 
 
 La ventana se puede **redimensionar y maximizar**: todo crece en proporción (tarjetas, cifras y gráfico) y ningún texto se corta; si una cifra no cabe en su tarjeta, su letra se reduce un poco.
 
-En **Ajustes** puedes abrir con Fortnite, abrir el informe al iniciar, elegir las actualizaciones, escribir los **cofres abiertos antes del contador** (un estimado que se suma a tu total), copiar la **dirección del overlay para OBS**, cambiar la carpeta de repeticiones y compartir tus cofres con tu **equipo** (ver [Compañeros](#compañeros)). Abajo se ve la versión instalada.
+En **Ajustes** puedes abrir con Fortnite, abrir el informe al iniciar, **contar los cofres rotos** como abiertos (activado por defecto), elegir las actualizaciones, escribir los **cofres abiertos antes del contador** (un estimado que se suma a tu total), copiar la **dirección del overlay para OBS** y cambiar la carpeta de repeticiones. Abajo se ve la versión instalada.
 
 <p align="center"><img src="docs/settings.png" alt="Ajustes" width="400"></p>
 
@@ -101,7 +101,6 @@ De arriba abajo verás: el total de cofres, la última partida, la sesión, hoy,
 - **Cofres por día:** gráfico de los últimos 30 días con escala, la media diaria (línea discontinua) y hoy en cian. Pasa el ratón por una barra para ver el día y sus cofres.
 - **Por tipo de cofre** y **de dónde vienen los tesoros**, con una barra de proporción por fila. Las cajas de munición, de comida y los cañones de botín aparecen aparte, fuera del total.
 - **Tesoros obtenidos:** cada tesoro con su partida, el momento y el cofre de origen.
-- **Compañeros** (en dúos, tríos y escuadrones): cada compañero con las partidas jugadas juntos, sus cofres (exactos si comparte sus datos, si no los vistos), su media, su récord, tus cofres en esas mismas partidas y su historial.
 - **Últimas partidas** (las 100 más recientes): modo, puesto (🏆 victoria en dorado, top 10 en verde), cofres y tesoros.
 
 <p align="center"><img src="docs/report.png" alt="Informe" width="820"></p>
@@ -113,27 +112,6 @@ De arriba abajo verás: el total de cofres, la última partida, la sesión, hoy,
 - Un tesoro que sale de algo que no es un cofre (cañón de botín, caja de munición…) se resalta con ⚑ en el informe.
 
 El juego solo envía ids de premios, no nombres: `treasures.json` los asigna a nombres y se puede editar con el Bloc de notas. Los ids nuevos se añaden solos y la herramienta te avisa cuando uno necesita nombre.
-
-## Compañeros
-
-En dúos, tríos y escuadrones, cada partida guarda también a tus compañeros y los cofres que abrieron. El informe junta su histórico (partidas juntos, sus cofres, media, récord y tus cofres en esas partidas), y en **Últimas partidas** la columna **Equipo** suma tus cofres y los suyos.
-
-<p align="center"><img src="docs/teammates.png" alt="Compañeros en el informe" width="820"></p>
-
-### Cofres vistos (sin hacer nada)
-
-Salen de **tu** replay, y Fortnite solo graba lo que pasa cerca de ti. Cuando un compañero se aleja, sus cofres no se ven: la cifra es un **mínimo** y se muestra con **≥**. Tu propio total no cambia.
-
-### Cofres exactos (compartiendo)
-
-Si tus compañeros también usan Chest Counter, podéis compartir vuestros datos y cada uno ve los cofres **exactos** de los demás, sacados de sus propios replays. En **Ajustes → Equipo** hay dos formas:
-
-- **Carpeta compartida** (recomendada): elegid todos la misma carpeta de OneDrive, Google Drive, Dropbox… Tras cada partida, el contador deja ahí tu resumen y lee el de los demás. Todo se actualiza solo.
-- **Exportar / Importar**: exporta tu archivo (`.chestcounter.json`) y pásaselo por Discord, WhatsApp…; tu compañero lo abre con **Importar**. También se puede importar su `data.json`.
-
-El resumen solo contiene **tus** partidas: fecha, modo, puesto, cofres y número de tesoros. No contiene nombres de otros jugadores. Chest Counter no envía nada a ningún sitio: solo escribe en la carpeta que elijas, y es tu programa de nube el que la sincroniza.
-
-Las partidas se emparejan por su identificador. Si coincidís en una partida con el mismo puesto, cuenta como jugada juntos aunque su replay ya no exista, así que también se recuperan partidas antiguas. Los compañeros que comparten llevan **✓ comparte**, y **Su historial** muestra todo lo que han contado, contigo o sin ti.
 
 ## Perfiles (varias cuentas en un PC)
 
@@ -151,11 +129,10 @@ Todo se guarda en `%APPDATA%\ChestCounter`:
 |---|---|
 | `report.html` | El informe (se abre en tu navegador). |
 | `overlay.html` | Copia del overlay en un archivo (para OBS es mejor la dirección http://localhost:7373/). |
-| `matches.csv` | Una línea por partida, para Excel o Google Sheets (con los cofres vistos de cada compañero). |
+| `matches.csv` | Una línea por partida, para Excel o Google Sheets. |
 | `data.json` | Tu historial completo. **Haz copia de seguridad** si cambias de PC. |
 | `config.json` | Perfil, carpeta de repeticiones, posición del overlay y ajustes. |
 | `treasures.json` | Nombres de los premios de la caza del tesoro. |
-| `team\` | Archivos importados de tus compañeros. |
 | `errors.log` | Detalles de las repeticiones que no se pudieron leer, para adjuntar a un informe de error. |
 
 Fortnite borra los replays antiguos, pero **tu historial no se borra**: cada partida se guarda en `data.json` en cuanto se cuenta, y el informe y las estadísticas salen de ahí. Por eso, aunque el replay ya no exista, la partida sigue en tus totales.
@@ -166,7 +143,9 @@ Para empezar de cero: ejecuta `ChestCounter.exe --reset-config`, o borra esa car
 
 **No se cuenta nada.** Comprueba que las repeticiones están activadas en Fortnite y que la herramienta está en marcha cuando termina la partida. La ventana te indica si falta la carpeta de repeticiones o está vacía.
 
-**¿Se cuentan las cajas de munición?** No. Las cajas de munición, las cajas de comida y los cañones de botín aparecen aparte en el informe y no forman parte del total de cofres. Los cofres que **destruyes** en vez de abrirlos sí se cuentan.
+**¿Se cuentan las cajas de munición?** No. Las cajas de munición, las cajas de comida y los cañones de botín aparecen aparte en el informe y no forman parte del total de cofres. Los cofres que **rompes** en vez de abrirlos sí se cuentan; puedes desactivarlo en **Ajustes → Contar cofres rotos** (no se borra nada: al volver a activarlo reaparecen).
+
+**¿Cómo empiezo de cero?** En **Ajustes → Restablecer estadísticas…**. Se borra todo el historial (con confirmación y una copia de seguridad `data-backup-….json` en la carpeta de tus datos) y solo se cuentan las partidas siguientes.
 
 **¿Modos creativos?** Solo se cuentan las partidas de Battle Royale; los demás modos se omiten.
 
