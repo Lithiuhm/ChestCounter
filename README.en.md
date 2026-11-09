@@ -108,6 +108,8 @@ If another program already uses Ctrl+Shift+O or Ctrl+Shift+L, the tool shows a n
 
 The window has three buttons: **Overlay** (show or hide the overlay; green dot = on, red = off), **Report** (opens `report.html`) and **Settings**. The installed version is shown in the window title. When a new version is available, an install button appears; when Fortnite closes, a notice lets you keep the counter open (click it). The profile selector appears when there are several accounts.
 
+The window can be **resized and maximized**: everything grows in proportion (cards, figures and chart) and no text gets cut off; if a figure does not fit its card, its font shrinks a little.
+
 In **Settings** you can open with Fortnite, open the report at startup, choose the updates, type the **chests opened before the counter** (an estimate added to your total), copy the **overlay address for OBS** and change the replays folder. The installed version is shown at the bottom.
 
 <p align="center"><img src="docs/settings.png" alt="Settings" width="400"></p>
@@ -116,7 +118,13 @@ From top to bottom you will see: the total chests, the last match, the session, 
 
 ## The report
 
-`report.html` opens in your browser and refreshes by itself: total, average, best match, chests per day, breakdown by chest type, treasures and every match.
+`report.html` opens in your browser and refreshes by itself. It uses the same colors as the window (dark, or light when Windows is in light mode) and adapts to phones:
+
+- **Key figures:** the total chests in large type, with this session's chests and your Victory Royales; next to it, matches, average per match, best match and treasures.
+- **Chests per day:** chart of the last 30 days with a scale, the daily average (dashed line) and today in cyan. Hover a bar to see the day and its chests.
+- **By chest type** and **where the treasures come from**, with a proportion bar on each row. Ammo boxes, food boxes and loot cannons are listed apart, not in the total.
+- **Treasures obtained:** each treasure with its match, the moment and the source chest.
+- **Latest matches** (the 100 most recent): mode, placement (🏆 victory in gold, top 10 in green), chests and treasures.
 
 <p align="center"><img src="docs/report.png" alt="Report" width="820"></p>
 

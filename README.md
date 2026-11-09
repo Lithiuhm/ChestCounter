@@ -109,6 +109,8 @@ Si otro programa ya usa Ctrl+Mayús+O o Ctrl+Mayús+L, la herramienta lo indica 
 
 La ventana tiene tres botones: **Overlay** (mostrar u ocultar el overlay; punto verde = activado, rojo = desactivado), **Informe** (abre `report.html`) y **Ajustes**. La versión instalada aparece en el título de la ventana. Si hay una versión nueva, aparece un botón para instalarla; cuando Fortnite se cierra, un aviso permite mantener el contador abierto (haz clic en él). El selector de perfil aparece cuando hay varias cuentas.
 
+La ventana se puede **redimensionar y maximizar**: todo crece en proporción (tarjetas, cifras y gráfico) y ningún texto se corta; si una cifra no cabe en su tarjeta, su letra se reduce un poco.
+
 En **Ajustes** puedes abrir con Fortnite, abrir el informe al iniciar, elegir las actualizaciones, escribir los **cofres abiertos antes del contador** (un estimado que se suma a tu total), copiar la **dirección del overlay para OBS** y cambiar la carpeta de repeticiones. Abajo se ve la versión instalada.
 
 <p align="center"><img src="docs/settings.png" alt="Ajustes" width="400"></p>
@@ -117,7 +119,13 @@ De arriba abajo verás: el total de cofres, la última partida, la sesión, hoy,
 
 ## El informe
 
-`report.html` se abre en tu navegador y se actualiza solo: total, media, mejor partida, cofres por día, desglose por tipo de cofre, tesoros y cada partida.
+`report.html` se abre en tu navegador y se actualiza solo. Usa los mismos colores que la ventana (oscuro, o claro si Windows está en modo claro) y se adapta al móvil:
+
+- **Cifras clave:** el total de cofres en grande, con los de la sesión y tus victorias reales; al lado, partidas, media por partida, récord y tesoros.
+- **Cofres por día:** gráfico de los últimos 30 días con escala, la media diaria (línea discontinua) y hoy en cian. Pasa el ratón por una barra para ver el día y sus cofres.
+- **Por tipo de cofre** y **de dónde vienen los tesoros**, con una barra de proporción por fila. Las cajas de munición, de comida y los cañones de botín aparecen aparte, fuera del total.
+- **Tesoros obtenidos:** cada tesoro con su partida, el momento y el cofre de origen.
+- **Últimas partidas** (las 100 más recientes): modo, puesto (🏆 victoria en dorado, top 10 en verde), cofres y tesoros.
 
 <p align="center"><img src="docs/report.png" alt="Informe" width="820"></p>
 

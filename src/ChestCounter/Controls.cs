@@ -137,7 +137,7 @@ public sealed class PillButton : Button
         {
             g.DrawPath(edge, inner);
         }
-        var flags = TextFormatFlags.SingleLine | TextFormatFlags.NoPadding;
+        var flags = TextFormatFlags.SingleLine;
         var textSize = TextRenderer.MeasureText(g, Text, Font, Size, flags);
         var d = Math.Max(6f, Font.Height * 0.45f);
         var gap = d * 0.8f;
@@ -223,5 +223,88 @@ public sealed class ToggleSwitch : Control
         var x = _checked ? track.Right - d - 3 : track.Left + 3;
         using var knob = new SolidBrush(_checked ? Theme.AccentInk : Theme.Muted);
         g.FillEllipse(knob, x, track.Top + 3, d, d);
+    }
+}
+
+/// <summary>
+/// Etiqueta de una sola línea que nunca se corta: si el texto no cabe en su caja (ancho o alto),
+/// se dibuja con la letra justa para que quepa. Su fuente es el tamaño máximo.
+/// </summary>
+[SupportedOSPlatform("windows")]
+public sealed class FitLabel : Label
+{
+    private Font? _fit;       // fuente reducida propia (null: se usa la del control)
+    private Font? _fitBase;   // fuente del control con la que se calculó
+    private string? _fitKey;
+
+    public FitLabel()
+    {
+        SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        var text = Text ?? "";
+        if (text.Length == 0)
+        {
+            return;
+        }
+        var flags = TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix | Align(TextAlign);
+        var font = FitFont(e.Graphics, text);
+        TextRenderer.DrawText(e.Graphics, text, font, ClientRectangle, Enabled ? ForeColor : SystemColors.GrayText, flags);
+    }
+
+    private Font FitFont(IDeviceContext dc, string text)
+    {
+        var key = $"{text}|{ClientSize}";
+        if (key == _fitKey && ReferenceEquals(_fitBase, Font))
+        {
+            return _fit ?? Font;
+        }
+        var size = Font.Size;
+        var box = ClientSize;
+        const TextFormatFlags measure = TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix;
+        var fit = Font;
+        for (var i = 0; i < 12; i++)
+        {
+            var m = TextRenderer.MeasureText(dc, text, fit, new Size(int.MaxValue, int.MaxValue), measure);
+            if (m.Width <= box.Width && m.Height <= box.Height || size <= 5f)
+            {
+                break;
+            }
+            // Reduce lo que falte (en ancho o alto) y prueba otra vez: el redondeo de GDI puede pedir un paso más.
+            var ratio = Math.Min(box.Width / (float)Math.Max(1, m.Width), box.Height / (float)Math.Max(1, m.Height));
+            size = Math.Max(5f, size * Math.Min(ratio, 0.97f));
+            if (!ReferenceEquals(fit, Font)) fit.Dispose();
+            fit = new Font(Font.FontFamily, size, Font.Style, Font.Unit);
+        }
+        _fit?.Dispose();
+        _fit = ReferenceEquals(fit, Font) ? null : fit;
+        _fitBase = Font;
+        _fitKey = key;
+        return fit;
+    }
+
+    private static TextFormatFlags Align(ContentAlignment a) => a switch
+    {
+        ContentAlignment.TopLeft => TextFormatFlags.Top | TextFormatFlags.Left,
+        ContentAlignment.TopCenter => TextFormatFlags.Top | TextFormatFlags.HorizontalCenter,
+        ContentAlignment.TopRight => TextFormatFlags.Top | TextFormatFlags.Right,
+        ContentAlignment.MiddleLeft => TextFormatFlags.VerticalCenter | TextFormatFlags.Left,
+        ContentAlignment.MiddleCenter => TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter,
+        ContentAlignment.MiddleRight => TextFormatFlags.VerticalCenter | TextFormatFlags.Right,
+        ContentAlignment.BottomLeft => TextFormatFlags.Bottom | TextFormatFlags.Left,
+        ContentAlignment.BottomCenter => TextFormatFlags.Bottom | TextFormatFlags.HorizontalCenter,
+        _ => TextFormatFlags.Bottom | TextFormatFlags.Right,
+    };
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _fit?.Dispose();
+            _fit = null;
+        }
+        base.Dispose(disposing);
     }
 }

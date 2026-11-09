@@ -51,8 +51,8 @@ public sealed class MainForm : Form
         Font = Theme.Text();
         BackColor = Theme.Bg;
         ForeColor = Theme.Ink;
-        FormBorderStyle = FormBorderStyle.FixedSingle;
-        MaximizeBox = false;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MinimumSize = new Size(420, 236);
         StartPosition = FormStartPosition.CenterScreen;
         ClientSize = new Size(592, 332);
         Icon = AppIcon.Load();
@@ -139,6 +139,11 @@ public sealed class MainForm : Form
             dialog.ShowDialog(this);
         };
 
+        // Diseño base (592×332): al redimensionar o maximizar, todos los controles y fuentes escalan proporcionalmente.
+        CaptureLayout();
+        _scaleTimer = new System.Windows.Forms.Timer { Interval = 50 };
+        _scaleTimer.Tick += (_, _) => { _scaleTimer.Stop(); ApplyLayoutScale(); };
+
         monitor.Changed += OnChanged;
         Shown += (_, _) =>
         {
@@ -147,6 +152,75 @@ public sealed class MainForm : Form
                 WindowState = FormWindowState.Minimized; // abierto con Fortnite: el juego conserva la pantalla
             }
         };
+    }
+
+    private const int DesignW = 592, DesignH = 332;
+    private readonly Dictionary<Control, LayoutEntry> _layout = new();
+    private System.Windows.Forms.Timer? _scaleTimer;
+    private float _lastFx = 1, _lastFy = 1;
+
+    private sealed class LayoutEntry
+    {
+        public Point Location;
+        public Size Size;
+        public Font? Font;
+        public Font? Scaled;
+    }
+
+    private void CaptureLayout()
+    {
+        Capture(this);
+        void Capture(Control parent)
+        {
+            foreach (Control c in parent.Controls)
+            {
+                _layout[c] = new LayoutEntry { Location = c.Location, Size = c.Size, Font = c.Font };
+                Capture(c);
+            }
+        }
+    }
+
+    protected override void OnResize(EventArgs e)
+    {
+        base.OnResize(e);
+        if (WindowState == FormWindowState.Minimized)
+        {
+            return;
+        }
+        _scaleTimer?.Stop();
+        _scaleTimer?.Start();
+    }
+
+    /// <summary>Escala posiciones, tamaños y fuentes desde el diseño base. Las fuentes van en puntos: se dividen por el DPI para no contarlas dos veces.</summary>
+    private void ApplyLayoutScale()
+    {
+        if (_layout.Count == 0 || ClientSize.Width <= 0 || ClientSize.Height <= 0)
+        {
+            return;
+        }
+        var fx = ClientSize.Width / (float)DesignW;
+        var fy = ClientSize.Height / (float)DesignH;
+        if (Math.Abs(fx - _lastFx) < 0.005 && Math.Abs(fy - _lastFy) < 0.005)
+        {
+            return;
+        }
+        _lastFx = fx;
+        _lastFy = fy;
+        // Durante restaurar/maximizar el tamaño puede ser transitorio: sin factor válido no se tocan las fuentes.
+        var k = Math.Min(fx / (DeviceDpi / 96f), fy / (DeviceDpi / 96f));
+        var scaleFonts = float.IsFinite(k) && k > 0.2 && k < 10;
+        foreach (var (c, l) in _layout)
+        {
+            c.Location = new Point((int)Math.Round(l.Location.X * fx), (int)Math.Round(l.Location.Y * fy));
+            c.Size = new Size((int)Math.Round(l.Size.Width * fx), (int)Math.Round(l.Size.Height * fy));
+            if (scaleFonts && l.Font != null)
+            {
+                var nf = new Font(l.Font.FontFamily, l.Font.SizeInPoints * k, l.Font.Style);
+                l.Scaled?.Dispose();
+                l.Scaled = nf;
+                c.Font = nf;
+            }
+        }
     }
 
     protected override void OnHandleCreated(EventArgs e)
@@ -299,7 +373,7 @@ public sealed class MainForm : Form
 
     private static Label Lbl(Control parent, string text, float size, FontStyle style, Color color, Point at, Size sz, ContentAlignment align = ContentAlignment.TopLeft)
     {
-        var l = new Label
+        var l = new FitLabel
         {
             Text = text,
             Font = Theme.Text(size, style),

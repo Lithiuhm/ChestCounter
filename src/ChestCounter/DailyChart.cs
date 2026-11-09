@@ -38,14 +38,21 @@ public sealed class DailyChart : Control
             return;
         }
 
-        const float barWidth = 28f, valueH = 18f, dayH = 16f;
+        // La fuente del control se escala con la ventana; la negrita es solo para las cifras.
+        using var fontValue = new Font(Font, FontStyle.Bold);
+        using var fontDay = new Font(Font, FontStyle.Regular);
+
+        // Las franjas de texto y las barras salen del alto de la fuente: con medidas fijas, al maximizar las cifras se cortaban.
+        // A 9 pt y 96 ppp equivalen a las de siempre (cifra 18, día 16, barra 28).
+        var lineH = fontDay.GetHeight(g);
+        var valueH = fontValue.GetHeight(g) + 2f;
+        var dayH = lineH;
         var max = _days.Max(d => d.Chests);
         var slot = (float)Width / _days.Count;
+        var barWidth = Math.Min(slot - 6f, lineH * 1.75f);
+        var radius = barWidth / 7f;
         var baseline = Height - dayH - 4f;          // línea base de las barras
-        var maxBar = baseline - valueH - 6f;        // altura máxima de una barra
-
-        using var fontValue = Theme.Text(9f, FontStyle.Bold);
-        using var fontDay = Theme.Text(9f, FontStyle.Regular);
+        var maxBar = Math.Max(0f, baseline - valueH - 6f); // altura máxima de una barra
         using var brushPast = new SolidBrush(Theme.Blue);
         using var brushToday = new SolidBrush(Theme.Cyan);
         using var brushEmpty = new SolidBrush(Theme.Line);
@@ -66,7 +73,7 @@ public sealed class DailyChart : Control
             {
                 h = Math.Max(h, 4f);
                 var bar = new RectangleF(cx - barWidth / 2f, baseline - h, barWidth, h);
-                using var path = Shape.Rounded(bar, Math.Min(4f, h / 2f));
+                using var path = Shape.Rounded(bar, Math.Min(radius, h / 2f));
                 g.FillPath(isToday ? brushToday : brushPast, path);
             }
             else
