@@ -69,9 +69,9 @@ When this option is on, a tiny invisible process starts with Windows and checks 
 
 ## The overlay
 
-- **Big numbers**: your **total** chests (gold) and the chests of your **last match**.
+- **Big numbers**: your **total** chests (gold) and, in the box, the chests of the **previous** match (or the **current** one while you play).
 - **Session**: chests since the tool was started, with the number of matches and the average.
-- **Last**: chests of your last match. **Treasures**: treasures found so far.
+- **Previous** (only during a match): chests of your previous match. **Treasures**: treasures found so far.
 - During a match, the badge **● MATCH IN PROGRESS** appears and the right counter shows "…" until the match ends.
 
 To see it over the game, set Fortnite to **Windowed Fullscreen** (*Settings → Video → Window Mode*): in exclusive fullscreen, Windows cannot draw anything on top of the game. The overlay starts **turned off**: turn it on with the **Overlay** button (green dot = on, red = off) or with Ctrl+Shift+O.

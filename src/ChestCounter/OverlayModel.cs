@@ -4,7 +4,7 @@ namespace ChestCounter;
 public static class OverlayModel
 {
     /// <summary>Texto del contador derecho entre dos partidas (también sirve para mantener el ancho del overlay).</summary>
-    public static string LastMatchCaption => L.T("última partida", "last match");
+    public static string LastMatchCaption => L.T("anterior", "previous");
 
     /// <param name="live">Cifras de la partida en curso, cuando el replay se pudo leer (null si no).</param>
     /// <param name="inProgress">Hay una partida grabándose (aunque sus cifras aún no se puedan leer).</param>
@@ -33,7 +33,7 @@ public static class OverlayModel
         // Entre partidas el contador derecho ya muestra la última partida: la fila solo aparece durante una partida.
         if (last != null && (live != null || inProgress))
         {
-            rows.Add(new OverlayRow(L.T("Última", "Last"), L.Count(last.ChestsOpened, "cofre", "cofres", "chest", "chests")));
+            rows.Add(new OverlayRow(L.T("Anterior", "Previous"), L.Count(last.ChestsOpened, "cofre", "cofres", "chest", "chests")));
         }
 
         var treasures = d.Matches.Sum(m => m.TreasureFinds.Count) + liveTreasures;
@@ -42,7 +42,7 @@ public static class OverlayModel
         // Contador derecho: la partida en curso si se puede leer, "…" mientras no se pueda, si no la última partida.
         if (live != null)
         {
-            return new OverlayView(L.N(total), L.N(live.ChestsOpened), L.T("partida actual", "current match"), true,
+            return new OverlayView(L.N(total), L.N(live.ChestsOpened), L.T("actual", "current"), true,
                 L.T("● EN DIRECTO", "● LIVE"), rows);
         }
         if (inProgress)

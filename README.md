@@ -70,9 +70,9 @@ Con esta opción activada, un pequeño proceso invisible se inicia con Windows y
 
 ## El overlay
 
-- **Cifras grandes**: tu **total** de cofres (dorado) y los cofres de tu **última partida**.
+- **Cifras grandes**: tu **total** de cofres (dorado) y, en el recuadro, los cofres de la partida **anterior** (o de la **actual** mientras juegas).
 - **Sesión**: cofres desde que se abrió la herramienta, con el número de partidas y la media.
-- **Última**: cofres de tu última partida. **Tesoros**: tesoros encontrados hasta ahora.
+- **Anterior** (solo durante una partida): cofres de tu partida anterior. **Tesoros**: tesoros encontrados hasta ahora.
 - Durante una partida aparece la etiqueta **● EN PARTIDA** y el contador de la derecha muestra "…" hasta que termina.
 
 Para verlo sobre el juego, pon Fortnite en **Pantalla completa en ventana** (*Ajustes → Vídeo → Modo de ventana*): en pantalla completa exclusiva, Windows no puede dibujar nada encima del juego. El overlay viene **desactivado**: actívalo con el botón **Overlay** (punto verde = activado, rojo = desactivado) o con Ctrl+Mayús+O.
