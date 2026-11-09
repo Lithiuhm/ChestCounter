@@ -6,8 +6,8 @@ namespace ChestCounter;
 
 /// <summary>
 /// Tiny local web server (127.0.0.1 only) while the tool is open: OBS adds <see cref="Url"/> as a browser source.
-/// "/" is the overlay page (it refreshes itself every 2 s without flicker), "/view" its content,
-/// "/report" the full report.
+/// "/" is the overlay page (it refreshes itself every 2 s without flicker), "/view" its content.
+/// Only requests addressed to localhost / 127.0.0.1 are answered (protection against DNS rebinding).
 /// </summary>
 public static class ObsServer
 {
@@ -15,15 +15,13 @@ public static class ObsServer
 
     private static TcpListener? _listener;
     private static volatile string _view = "";
-    private static volatile string? _reportPath;
 
     /// <summary>Address to paste in OBS, or null when the server could not start.</summary>
     public static string? Url { get; private set; }
 
     /// <summary>Starts on the first free port from <paramref name="port"/> (a few tries). Safe to call twice.</summary>
-    public static void Start(int port, string reportPath)
+    public static void Start(int port)
     {
-        _reportPath = reportPath;
         if (_listener != null)
         {
             return;
@@ -57,6 +55,11 @@ public static class ObsServer
     /// <summary>New figures for the page (called on every publish).</summary>
     public static void Update(OverlayView view) => _view = ReportWriter.OverlayBox(view);
 
+    /// <summary>True when the Host header names this machine: "localhost:port" or "127.0.0.1:port".</summary>
+    private static bool IsLocalHost(string host, int port) =>
+        host.Equals($"localhost:{port}", StringComparison.OrdinalIgnoreCase) ||
+        host.Equals($"127.0.0.1:{port}", StringComparison.Ordinal);
+
     private static void AcceptLoop(TcpListener listener)
     {
         while (true)
@@ -89,36 +92,42 @@ public static class ObsServer
                 {
                     return;
                 }
-                var requestLine = Encoding.ASCII.GetString(buffer, 0, read).Split('\n')[0];
-                var parts = requestLine.Split(' ');
+                var lines = Encoding.ASCII.GetString(buffer, 0, read).Split('\n');
+                var parts = lines[0].Split(' ');
                 var path = parts.Length > 1 ? parts[1].Split('?')[0] : "/";
+                var host = lines.Skip(1)
+                    .Select(l => l.Trim())
+                    .FirstOrDefault(l => l.StartsWith("Host:", StringComparison.OrdinalIgnoreCase))?[5..].Trim() ?? "";
 
                 string body;
                 var status = "200 OK";
-                switch (path)
+                if (!IsLocalHost(host, ((IPEndPoint)client.Client.LocalEndPoint!).Port))
                 {
-                    case "/":
-                    case "/overlay":
-                        body = ReportWriter.OverlayLivePage(_view);
-                        break;
-                    case "/view":
-                        body = _view;
-                        break;
-                    case "/report":
-                        var report = _reportPath;
-                        body = report != null && File.Exists(report)
-                            ? File.ReadAllText(report)
-                            : "<!doctype html><meta charset=\"utf-8\"><p>…</p>";
-                        break;
-                    default:
-                        status = "404 Not Found";
-                        body = "not found";
-                        break;
+                    // Another site pointing its own name at 127.0.0.1 (DNS rebinding): never answer it.
+                    status = "403 Forbidden";
+                    body = "forbidden";
+                }
+                else
+                {
+                    switch (path)
+                    {
+                        case "/":
+                        case "/overlay":
+                            body = ReportWriter.OverlayLivePage(_view);
+                            break;
+                        case "/view":
+                            body = _view;
+                            break;
+                        default:
+                            status = "404 Not Found";
+                            body = "not found";
+                            break;
+                    }
                 }
 
                 var bytes = Encoding.UTF8.GetBytes(body);
                 var header = $"HTTP/1.1 {status}\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {bytes.Length}\r\n" +
-                             "Cache-Control: no-store\r\nConnection: close\r\n\r\n";
+                             "Cache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n";
                 stream.Write(Encoding.ASCII.GetBytes(header));
                 stream.Write(bytes);
             }

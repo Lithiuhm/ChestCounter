@@ -97,7 +97,7 @@ public sealed class Monitor
             StartOverlay();
         }
         RestartWatcher();
-        ObsServer.Start(_config.ObsPort > 0 ? _config.ObsPort : ObsServer.DefaultPort, _store.ReportPath);
+        ObsServer.Start(_config.ObsPort > 0 ? _config.ObsPort : ObsServer.DefaultPort);
 
         new Thread(Loop) { IsBackground = true, Name = "Vigilancia" }.Start();
 
