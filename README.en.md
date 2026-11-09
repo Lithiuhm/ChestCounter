@@ -20,6 +20,16 @@ Chest Counter reads the replays Fortnite saves after each match and keeps a runn
 
 > It counts the chests **you opened**. It does not show where chests are on the map.
 
+## What's new in 2.0.11
+
+- **Redesigned, more compact overlay:** colored stripe on the left (gold between matches, green during a match), a **LIVE** pill and the previous or current match in its own box.
+- **Overlay off by default:** turn it on with the **Overlay** button or Ctrl+Shift+O. The button shows a green (on) or red (off) dot.
+- **Overlay for OBS by URL:** while the counter is open, the overlay is served at **http://localhost:7373/**, ready for a browser source (copy it from **Settings**).
+- **Chests from before the counter:** in **Settings** you can type an estimate of the chests you opened before using the tool; it is added to your total (not to averages or records).
+- **Version shown:** in the window title and in **Settings**.
+- **Redesigned Settings:** fully dark, with rounded cards, switches and rounded buttons.
+- **Spanish and English only.**
+
 ## What's new in 2.0
 
 - **Last 7 days at a glance:** the bottom of the main window shows a bar chart with the chests you opened on each of the last 7 days (today in cyan). The window grows taller, not wider.
@@ -53,7 +63,7 @@ Because Fortnite only writes the replay's decryption key when the match ends, ch
 
 <p align="center"><img src="docs/setup.png" alt="First launch setup" width="760"></p>
 
-If you count your existing replays, a progress bar runs in the window while the report opens in your browser and fills in live:
+If you count your existing replays, a progress bar runs in the window while the report opens in your browser and fills in live.
 
 
 5. Keep the window open (you can minimize it) while you play. A few seconds after each match, its chests are added:
@@ -72,7 +82,7 @@ When this option is on, a tiny invisible process starts with Windows and checks 
 - **Big numbers**: your **total** chests (gold) and, in the box, the chests of the **previous** match (or the **current** one while you play).
 - **Session**: chests since the tool was started, with the number of matches and the average.
 - **Previous** (only during a match): chests of your previous match. **Treasures**: treasures found so far.
-- During a match, the badge **● MATCH IN PROGRESS** appears and the right counter shows "…" until the match ends.
+- During a match, the **MATCH IN PROGRESS** badge appears and the box shows "…" until the chests can be read; then it switches to **LIVE** with the chests of the current match.
 
 To see it over the game, set Fortnite to **Windowed Fullscreen** (*Settings → Video → Window Mode*): in exclusive fullscreen, Windows cannot draw anything on top of the game. The overlay starts **turned off**: turn it on with the **Overlay** button (green dot = on, red = off) or with Ctrl+Shift+O.
 
@@ -91,7 +101,11 @@ If another program already uses Ctrl+Shift+O or Ctrl+Shift+L, the tool shows a n
 
 ### Main window
 
-The window has three buttons: **Overlay** (show or hide the overlay), **Report** (opens `report.html`) and **Settings**. When a new version is available, an install button appears; when Fortnite closes, a notice lets you keep the counter open (click it). The profile selector appears when there are several accounts. In **Settings** you can open with Fortnite, open the report at startup, choose the updates and change the replays folder.
+The window has three buttons: **Overlay** (show or hide the overlay; green dot = on, red = off), **Report** (opens `report.html`) and **Settings**. The installed version is shown in the window title. When a new version is available, an install button appears; when Fortnite closes, a notice lets you keep the counter open (click it). The profile selector appears when there are several accounts.
+
+In **Settings** you can open with Fortnite, open the report at startup, choose the updates, type the **chests opened before the counter** (an estimate added to your total), copy the **overlay address for OBS** and change the replays folder. The installed version is shown at the bottom.
+
+<p align="center"><img src="docs/settings.png" alt="Settings" width="400"></p>
 
 From top to bottom you will see: the total chests, the last match, the session, today, the best day, the average, the best match, the **History** (matches stored and since when), the treasures and the chart of the last 7 days.
 
@@ -111,7 +125,7 @@ The game only sends prize ids, not names: `treasures.json` maps them to names an
 
 ## Profiles (several accounts on one PC)
 
-The replays saved on a PC are normally those of its player, so there is **no name to type**: the tool counts the player who recorded each replay. If replays from several accounts are found, each account gets its own profile with its own statistics. The tool then asks which account you play on at each launch, and you can switch at any time with **P**. A match played on another account is saved in that account's profile, never lost.
+The replays saved on a PC are normally those of its player, so there is **no name to type**: the tool counts the player who recorded each replay. If replays from several accounts are found, each account gets its own profile with its own statistics. The **Profile** text at the top right of the window then becomes a **drop-down list** to choose the account shown (in the window, the overlay, OBS and the report). A match played on another account is saved in that account's profile, never lost.
 
 ## Updates
 

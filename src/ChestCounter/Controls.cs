@@ -150,3 +150,78 @@ public sealed class PillButton : Button
         TextRenderer.DrawText(g, Text, Font, textRect, ForeColor, flags | TextFormatFlags.VerticalCenter);
     }
 }
+
+/// <summary>Interruptor redondeado (sustituye a la casilla blanca de Windows).</summary>
+[SupportedOSPlatform("windows")]
+public sealed class ToggleSwitch : Control
+{
+    private bool _checked;
+
+    public ToggleSwitch()
+    {
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.ResizeRedraw | ControlStyles.Selectable, true);
+        Size = new Size(40, 22);
+        Cursor = Cursors.Hand;
+        TabStop = true;
+    }
+
+    public event EventHandler? CheckedChanged;
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public bool Checked
+    {
+        get => _checked;
+        set
+        {
+            if (_checked == value)
+            {
+                return;
+            }
+            _checked = value;
+            Invalidate();
+            CheckedChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    protected override void OnClick(EventArgs e)
+    {
+        Focus();
+        Checked = !Checked;
+        base.OnClick(e);
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.KeyCode is Keys.Space or Keys.Enter)
+        {
+            Checked = !Checked;
+            e.Handled = true;
+        }
+        base.OnKeyDown(e);
+    }
+
+    protected override void OnGotFocus(EventArgs e) { Invalidate(); base.OnGotFocus(e); }
+    protected override void OnLostFocus(EventArgs e) { Invalidate(); base.OnLostFocus(e); }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        var g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.Clear(Parent?.BackColor ?? Theme.Card);
+        var track = new RectangleF(1, 1, Width - 3, Height - 3);
+        using (var path = Shape.Rounded(track, track.Height / 2))
+        using (var fill = new SolidBrush(_checked ? Theme.Violet : Theme.Line))
+        {
+            g.FillPath(fill, path);
+            if (Focused)
+            {
+                using var ring = new Pen(Theme.VioletSoft, 1f);
+                g.DrawPath(ring, path);
+            }
+        }
+        var d = track.Height - 6;
+        var x = _checked ? track.Right - d - 3 : track.Left + 3;
+        using var knob = new SolidBrush(_checked ? Color.White : Theme.Muted);
+        g.FillEllipse(knob, x, track.Top + 3, d, d);
+    }
+}

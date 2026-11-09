@@ -186,7 +186,10 @@ public sealed class MainForm : Form
         _total.Text = v.Total;
         _current.Text = v.Current ?? "—";
         _current.ForeColor = v.CurrentLive ? Theme.Mint : v.Current == null ? Theme.Muted : Theme.Amber;
-        _currentCap.Text = v.CurrentCaption;
+        // El overlay usa textos cortos ("anterior" / "actual"); aquí hay sitio para los largos.
+        _currentCap.Text = v.CurrentCaption == OverlayModel.LastMatchCaption ? L.T("última partida", "last match")
+            : v.CurrentLive && v.Current != "…" ? L.T("partida actual", "current match")
+            : v.CurrentCaption;
         _badge.Text = v.Badge ?? "";
         _badgeCard.Visible = !string.IsNullOrEmpty(v.Badge);
 

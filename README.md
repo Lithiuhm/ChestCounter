@@ -20,6 +20,16 @@ Contador de cofres lee las repeticiones (replays) que Fortnite guarda después d
 
 > Cuenta los cofres que **tú** abriste. No muestra dónde están los cofres en el mapa.
 
+## Novedades de la 2.0.11
+
+- **Overlay rediseñado y más compacto:** franja de color a la izquierda (dorada entre partidas, verde durante una partida), etiqueta **EN DIRECTO** en forma de pastilla y la partida anterior o la actual en su propio recuadro.
+- **Overlay desactivado por defecto:** lo activas tú con el botón **Overlay** o con Ctrl+Mayús+O. El botón muestra un punto verde (activado) o rojo (desactivado).
+- **Overlay para OBS por URL:** mientras el contador está abierto, el overlay está en **http://localhost:7373/**, lista para una fuente de navegador (se copia desde **Ajustes**).
+- **Cofres de antes del contador:** en **Ajustes** puedes escribir un estimado de los cofres que abriste antes de usar la herramienta; se suma a tu total (no a medias ni récords).
+- **Versión visible:** en el título de la ventana y en **Ajustes**.
+- **Ajustes rediseñados:** todo en oscuro, con tarjetas redondeadas, interruptores y botones redondeados.
+- **Solo español e inglés.**
+
 ## Novedades de la 2.0
 
 - **Últimos 7 días de un vistazo:** en la parte inferior de la ventana principal aparece un gráfico de barras con los cofres que abriste en cada uno de los últimos 7 días (hoy en cian). La ventana es un poco más alta, no más ancha.
@@ -54,7 +64,7 @@ Como Fortnite solo guarda la clave de descifrado de la repetición cuando termin
 
 <p align="center"><img src="docs/setup.png" alt="Configuración del primer inicio" width="760"></p>
 
-Si cuentas tus repeticiones existentes, una barra de progreso avanza en la ventana mientras el informe se abre en tu navegador y se rellena en directo:
+Si cuentas tus repeticiones existentes, una barra de progreso avanza en la ventana mientras el informe se abre en tu navegador y se rellena en directo.
 
 
 5. Deja la ventana abierta (puedes minimizarla) mientras juegas. Unos segundos después de cada partida, sus cofres se suman:
@@ -73,7 +83,7 @@ Con esta opción activada, un pequeño proceso invisible se inicia con Windows y
 - **Cifras grandes**: tu **total** de cofres (dorado) y, en el recuadro, los cofres de la partida **anterior** (o de la **actual** mientras juegas).
 - **Sesión**: cofres desde que se abrió la herramienta, con el número de partidas y la media.
 - **Anterior** (solo durante una partida): cofres de tu partida anterior. **Tesoros**: tesoros encontrados hasta ahora.
-- Durante una partida aparece la etiqueta **● EN PARTIDA** y el contador de la derecha muestra "…" hasta que termina.
+- Durante una partida aparece la etiqueta **EN PARTIDA** y el recuadro muestra "…" hasta que se pueden leer los cofres; entonces pasa a **EN DIRECTO** con los cofres de la partida actual.
 
 Para verlo sobre el juego, pon Fortnite en **Pantalla completa en ventana** (*Ajustes → Vídeo → Modo de ventana*): en pantalla completa exclusiva, Windows no puede dibujar nada encima del juego. El overlay viene **desactivado**: actívalo con el botón **Overlay** (punto verde = activado, rojo = desactivado) o con Ctrl+Mayús+O.
 
@@ -92,7 +102,11 @@ Si otro programa ya usa Ctrl+Mayús+O o Ctrl+Mayús+L, la herramienta lo indica 
 
 ### Ventana principal
 
-La ventana tiene tres botones: **Overlay** (mostrar u ocultar el overlay), **Informe** (abre `report.html`) y **Ajustes**. Si hay una versión nueva, aparece un botón para instalarla; cuando Fortnite se cierra, un aviso permite mantener el contador abierto (haz clic en él). El selector de perfil aparece cuando hay varias cuentas. En **Ajustes** puedes abrir con Fortnite, abrir el informe al iniciar, elegir las actualizaciones y cambiar la carpeta de repeticiones.
+La ventana tiene tres botones: **Overlay** (mostrar u ocultar el overlay; punto verde = activado, rojo = desactivado), **Informe** (abre `report.html`) y **Ajustes**. La versión instalada aparece en el título de la ventana. Si hay una versión nueva, aparece un botón para instalarla; cuando Fortnite se cierra, un aviso permite mantener el contador abierto (haz clic en él). El selector de perfil aparece cuando hay varias cuentas.
+
+En **Ajustes** puedes abrir con Fortnite, abrir el informe al iniciar, elegir las actualizaciones, escribir los **cofres abiertos antes del contador** (un estimado que se suma a tu total), copiar la **dirección del overlay para OBS** y cambiar la carpeta de repeticiones. Abajo se ve la versión instalada.
+
+<p align="center"><img src="docs/settings.png" alt="Ajustes" width="400"></p>
 
 De arriba abajo verás: el total de cofres, la última partida, la sesión, hoy, el día con más cofres, la media, la mejor partida, el **Histórico** (partidas guardadas y desde cuándo), los tesoros y el gráfico de los últimos 7 días.
 
@@ -105,14 +119,14 @@ De arriba abajo verás: el total de cofres, la última partida, la sesión, hoy,
 ## Tesoros
 
 - **★★ Cofre dorado (seguro).** Cuando un cofre da un premio de la caza del tesoro (cosmético, pista musical, pantalla de carga, vehículo…), el servidor genera un cofre dorado que lleva el **id del premio**. La herramienta lo lee de la repetición.
-- **★ Cada tesoro recibido (momento exacto).** Cada tesoro que recibes se guarda con su hora exacta y el cofre del que salió; solo cuenta si ese cofre es **tuyo** (los tesoros compartidos con un compañero no se cuentan). Cuando se puede identificar el objeto, se le da nombre; si no, aparece como **"Tesoro gizmo"** (fuego artificial dorado, extractor portátil, localizadores, acelerador de extracción), cuyo tipo exacto no está en la repetición.
+- **★ Cada tesoro recibido (momento exacto).** Cada tesoro que recibes se guarda con su hora exacta y el cofre del que salió; solo cuenta si ese cofre es **tuyo** (los tesoros compartidos con un compañero no se cuentan). Cuando se puede identificar el objeto, se le da nombre; si no, aparece como **"Artilugio de tesoro"** (fuego artificial dorado, extractor portátil, localizadores, acelerador de extracción), cuyo tipo exacto no está en la repetición.
 - Un tesoro que sale de algo que no es un cofre (cañón de botín, caja de munición…) se resalta con ⚑ en el informe.
 
 El juego solo envía ids de premios, no nombres: `treasures.json` los asigna a nombres y se puede editar con el Bloc de notas. Los ids nuevos se añaden solos y la herramienta te avisa cuando uno necesita nombre.
 
 ## Perfiles (varias cuentas en un PC)
 
-Las repeticiones guardadas en un PC suelen ser las de su jugador, así que **no hay nombre que escribir**: la herramienta cuenta al jugador que grabó cada repetición. Si se encuentran repeticiones de varias cuentas, cada cuenta tiene su propio perfil con sus estadísticas. La herramienta pregunta en cada inicio en qué cuenta juegas, y puedes cambiar en cualquier momento con **P**. Una partida jugada en otra cuenta se guarda en el perfil de esa cuenta, nunca se pierde.
+Las repeticiones guardadas en un PC suelen ser las de su jugador, así que **no hay nombre que escribir**: la herramienta cuenta al jugador que grabó cada repetición. Si se encuentran repeticiones de varias cuentas, cada cuenta tiene su propio perfil con sus estadísticas. Arriba a la derecha de la ventana, el texto **Perfil** se convierte entonces en un **desplegable** para elegir la cuenta que se muestra (en la ventana, el overlay, OBS y el informe). Una partida jugada en otra cuenta se guarda en el perfil de esa cuenta, nunca se pierde.
 
 ## Actualizaciones
 
