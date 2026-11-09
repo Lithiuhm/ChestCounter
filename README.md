@@ -118,6 +118,8 @@ El juego solo envía ids de premios, no nombres: `treasures.json` los asigna a n
 
 En dúos, tríos y escuadrones, cada partida guarda también a tus compañeros y los cofres que abrieron. El informe junta su histórico (partidas juntos, sus cofres, media, récord y tus cofres en esas partidas), y en **Últimas partidas** la columna **Equipo** suma tus cofres y los suyos.
 
+<p align="center"><img src="docs/teammates.png" alt="Compañeros en el informe" width="820"></p>
+
 ### Cofres vistos (sin hacer nada)
 
 Salen de **tu** replay, y Fortnite solo graba lo que pasa cerca de ti. Cuando un compañero se aleja, sus cofres no se ven: la cifra es un **mínimo** y se muestra con **≥**. Tu propio total no cambia.

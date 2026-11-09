@@ -118,6 +118,8 @@ The game only sends prize ids, not names: `treasures.json` maps them to names an
 
 In duos, trios and squads, each match also stores your teammates and the chests they opened. The report gathers their history (matches together, their chests, average, best and your chests in those matches), and in **Latest matches** the **Team** column adds up your chests and theirs.
 
+<p align="center"><img src="docs/teammates.png" alt="Teammates in the report" width="820"></p>
+
 ### Chests seen (nothing to do)
 
 They come from **your** replay, and Fortnite only records what happens near you. When a teammate moves away, their chests are not seen: the figure is a **minimum** and is shown with **≥**. Your own total does not change.

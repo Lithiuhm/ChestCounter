@@ -239,6 +239,11 @@ public static class ReportWriter
         .flag{display:flex;gap:12px;align-items:flex-start;margin-top:28px;padding:14px 18px;border:1px solid var(--amber);border-radius:14px;background:var(--amber-soft)}
         .flag .ic{color:var(--amber);font-size:18px;line-height:1.2}
         .empty{padding:28px 20px;text-align:center;color:var(--muted)}
+        .mate{min-width:210px}
+        .avg-n{color:var(--amber)}
+        .mate b{font-weight:600;overflow-wrap:anywhere}
+        .mate .tags{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:4px}
+        .mate .badge{padding:1px 8px;font-size:12px}
 
         /* Carga */
         .loading{display:flex;gap:16px;align-items:center;background:var(--card);border:1px solid var(--cyan);border-radius:16px;padding:16px 18px;margin-bottom:22px;box-shadow:var(--shadow)}
@@ -549,17 +554,17 @@ public static class ReportWriter
         var meta = L.Count(total, "compañero", "compañeros", "teammate", "teammates") + " · "
             + L.Count(tracked, "partida en equipo", "partidas en equipo", "team match", "team matches")
             + (sharing > 0 ? " · " + L.T($"{N(sharing)} {(sharing == 1 ? "comparte" : "comparten")} sus datos", $"{N(sharing)} sharing their data") : "");
-        var maxAvg = Math.Max(0.1, rows.Max(r => (double)r.Chests / r.Matches));
         sb.Append($"""
             <section><div class="sh"><h2>{L.T("Compañeros", "Teammates")}</h2><span class="meta">{meta}</span></div>
-            <div class="card tw"><table><thead><tr><th>{L.T("Compañero", "Teammate")}</th><th class="r">{L.T("Partidas juntos", "Matches together")}</th><th class="r">{L.T("Sus cofres", "Their chests")}</th><th class="r">{L.T("Media", "Average")}</th><th class="r">{L.T("Récord", "Best")}</th><th class="r">{L.T("Tus cofres", "Your chests")}</th><th class="r">{L.T("Su historial", "Their history")}</th><th>{L.T("Última partida", "Last match")}</th></tr></thead><tbody>
+            <div class="card tw"><table><thead><tr><th>{L.T("Compañero", "Teammate")}</th><th class="r" title="{H(L.T("Partidas jugadas juntos", "Matches played together"))}">{L.T("Partidas", "Matches")}</th><th class="r">{L.T("Sus cofres", "Their chests")}</th><th class="r">{L.T("Media", "Average")}</th><th class="r">{L.T("Récord", "Best")}</th><th class="r">{L.T("Tus cofres", "Your chests")}</th><th class="r">{L.T("Su historial", "Their history")}</th></tr></thead><tbody>
             """);
         foreach (var r in rows)
         {
             var avg = (double)r.Chests / r.Matches;
-            var barW = (100.0 * avg / maxAvg).ToString("0.##", CultureInfo.InvariantCulture);
-            var wins = r.Wins > 0 ? $" <span class=\"badge win\">🏆 {N(r.Wins)}</span>" : "";
-            var tag = r.Shared != null ? $" <span class=\"badge top\" title=\"{H(L.T("Comparte sus datos: cofres exactos", "Shares their data: exact chests"))}\">✓ {L.T("comparte", "shares")}</span>" : "";
+            // Nombre y, debajo, insignias y la última partida juntos.
+            var wins = r.Wins > 0 ? $"<span class=\"badge win\" title=\"{H(L.T("Victorias juntos", "Wins together"))}\">🏆 {N(r.Wins)}</span>" : "";
+            var tag = r.Shared != null ? $"<span class=\"badge top\" title=\"{H(L.T("Comparte sus datos: cofres exactos", "Shares their data: exact chests"))}\">✓ {L.T("comparte", "shares")}</span>" : "";
+            var who = $"<div class=\"mate\"><b>{H(r.Name)}</b><div class=\"tags\">{wins}{tag}<span class=\"sm\">{L.T("última", "last")} {L.DateTimeShort(r.Last)}</span></div></div>";
             var exactness = r.Exact == r.Matches ? $"<div class=\"sm\">{L.T("exactos", "exact")}</div>"
                 : r.Exact > 0 ? $"<div class=\"sm\">{L.T($"{N(r.Exact)} de {N(r.Matches)} exactas", $"{N(r.Exact)} of {N(r.Matches)} exact")}</div>"
                 : $"<div class=\"sm\">{L.T("vistos", "seen")}</div>";
@@ -567,13 +572,13 @@ public static class ReportWriter
             var history = r.Shared is { } sh
                 ? $"<b>{N(sh.Matches.Sum(x => x.Chests))}</b><div class=\"sm\">{L.Count(sh.Matches.Count, "partida", "partidas", "match", "matches")}</div>"
                 : "<span class=\"muted\">—</span>";
-            sb.Append($"<tr><td>{H(r.Name)}{wins}{tag}</td><td class=\"r\">{N(r.Matches)}</td><td class=\"r nw\"><b>{min}{N(r.Chests)}</b>{exactness}</td>"
-                + $"<td><div class=\"chests\"><span class=\"mini\"><i style=\"width:{barW}%\"></i></span><b>{avg.ToString("0.0", Loc)}</b></div></td>"
-                + $"<td class=\"r\">{N(r.Best)}</td><td class=\"r sm\">{N(r.Mine)}</td><td class=\"r nw\">{history}</td><td class=\"nw\">{L.DateTimeShort(r.Last)}</td></tr>");
+            sb.Append($"<tr><td>{who}</td><td class=\"r\">{N(r.Matches)}</td><td class=\"r nw\"><b>{min}{N(r.Chests)}</b>{exactness}</td>"
+                + $"<td class=\"r\"><b class=\"avg-n\">{avg.ToString("0.0", Loc)}</b></td>"
+                + $"<td class=\"r\">{N(r.Best)}</td><td class=\"r sm\">{N(r.Mine)}</td><td class=\"r nw\">{history}</td></tr>");
         }
         if (oneOff > 0)
         {
-            sb.Append($"<tr><td colspan=\"8\" class=\"sm\">{(regulars.Count > 0
+            sb.Append($"<tr><td colspan=\"7\" class=\"sm\">{(regulars.Count > 0
                 ? L.T($"Y {L.Count(oneOff, "compañero", "compañeros", "", "")} con una sola partida (relleno de equipo), no mostrados.",
                     $"And {L.Count(oneOff, "", "", "teammate", "teammates")} with a single match (team fill), not shown.")
                 : L.T($"Y {L.Count(oneOff, "compañero más", "compañeros más", "", "")}.", $"And {L.Count(oneOff, "", "", "more teammate", "more teammates")}."))}</td></tr>");

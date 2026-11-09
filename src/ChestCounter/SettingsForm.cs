@@ -28,6 +28,7 @@ public sealed class SettingsForm : Form
     private readonly TextBox _team;
     private readonly PillButton _teamClear;
     private readonly Label _teamState;
+    private readonly Card _teamBadge;
     private readonly Label _teamHint;
     private readonly System.Windows.Forms.Timer _teamTimer = new() { Interval = 1000 };
     private bool _loading;
@@ -180,9 +181,11 @@ public sealed class SettingsForm : Form
         const int TeamW = RightX + RightW - LeftX;
         var teamCard = AddCard(LeftX, 335, TeamW, 104, 16);
         CardTitle(teamCard, L.T("Equipo · cofres exactos de tus compañeros", "Team · your teammates' exact chests"));
-        var teamBadge = new Card { Location = new Point(TeamW - 13 - 120, 6), Size = new Size(120, 18), Radius = 9, BackColor = Theme.Panel };
-        _teamState = Lbl(teamBadge, "", 7.0f, FontStyle.Bold, Theme.Muted, new Point(0, 0), new Size(120, 18), ContentAlignment.MiddleCenter);
-        teamCard.Controls.Add(teamBadge);
+        // Estado arriba a la derecha: su ancho sigue al texto (ver RefreshTeam) y va por delante del título.
+        _teamBadge = new Card { Location = new Point(TeamW - 13 - 70, 6), Size = new Size(70, 18), Radius = 9, BackColor = Theme.Panel };
+        _teamState = Lbl(_teamBadge, "", 7.0f, FontStyle.Bold, Theme.Muted, new Point(0, 0), new Size(70, 18), ContentAlignment.MiddleCenter);
+        teamCard.Controls.Add(_teamBadge);
+        _teamBadge.BringToFront();
 
         // Fila 1: carpeta compartida (OneDrive, Google Drive, Dropbox...) con Elegir / Quitar.
         const int Btn = 84, Gap = 6;
@@ -299,9 +302,15 @@ public sealed class SettingsForm : Form
         {
             _teamState.Text = state.text;
             _teamState.ForeColor = state.color;
+            var width = Math.Max(70, TextRenderer.MeasureText(state.text, _teamState.Font).Width + 18);
+            var right = _teamBadge.Right;
+            _teamBadge.SetBounds(right - width, _teamBadge.Top, width, _teamBadge.Height);
+            _teamState.Width = width;
         }
 
-        var hint = shared.Count > 0
+        var hint = missing
+            ? L.T("No se encuentra la carpeta: comprueba que la nube esté sincronizada o elige otra.", "Folder not found: check that your cloud app is syncing, or choose another one.")
+            : shared.Count > 0
             ? L.T($"Datos de {names}.", $"Data from {names}.")
             : hasFolder
                 ? L.T("Tus compañeros deben elegir esta misma carpeta en su ChestCounter.", "Your teammates must choose this same folder in their ChestCounter.")

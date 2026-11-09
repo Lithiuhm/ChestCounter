@@ -61,8 +61,8 @@ public static class TeamShare
     public static bool HasTeamFolder(Config c) => !string.IsNullOrWhiteSpace(c.TeamFolder) && Directory.Exists(c.TeamFolder);
 
     /// <summary>One summary per account found in the history (normally one).</summary>
-    public static List<TeamExport> Build(TrackerData data) => data.Matches
-        .Where(m => m.IsBattleRoyale && !string.IsNullOrEmpty(m.SessionId))
+    public static List<TeamExport> Build(TrackerData data) => (data.Matches ?? new())
+        .Where(m => m != null && m.IsBattleRoyale && !string.IsNullOrEmpty(m.SessionId))
         .GroupBy(Profiles.Key)
         .Where(g => g.Key.Length > 0)
         .Select(g =>
@@ -83,7 +83,7 @@ public static class TeamShare
                         Playlist = m.Playlist,
                         Placement = m.Placement,
                         Chests = m.ChestsOpened,
-                        Treasures = m.TreasureFinds.Count,
+                        Treasures = m.TreasureFinds?.Count ?? 0,
                     }).ToList(),
             };
         })
@@ -161,27 +161,29 @@ public static class TeamShare
             List<TeamExport> exports;
             if (root.TryGetProperty("Format", out var format) && format.ValueKind == JsonValueKind.String && format.GetString() == TeamExport.FormatName)
             {
-                exports = new() { JsonSerializer.Deserialize<TeamExport>(text, Json)! };
+                exports = new() { JsonSerializer.Deserialize<TeamExport>(text, Json) };
             }
             else if (root.TryGetProperty("Matches", out var matches) && matches.ValueKind == JsonValueKind.Array && root.TryGetProperty("ProcessedFiles", out _))
             {
-                exports = Build(JsonSerializer.Deserialize<TrackerData>(text, Json)!);
+                exports = JsonSerializer.Deserialize<TrackerData>(text, Json) is { } other ? Build(other) : new();
             }
             else
             {
                 return null;
             }
+            exports = exports.Where(e => e != null).ToList();
             foreach (var e in exports)
             {
                 e.Player = Clean(e.Player);
                 e.EpicId = e.EpicId is { Length: > 0 and <= 64 } ? e.EpicId : null;
-                e.Matches = (e.Matches ?? new()).Where(m => !string.IsNullOrEmpty(m.SessionId) && m.Chests is >= 0 and < 1000).ToList();
+                e.Matches = (e.Matches ?? new()).Where(m => m != null && !string.IsNullOrEmpty(m.SessionId) && m.SessionId.Length <= 128 && m.Chests is >= 0 and < 1000).ToList();
                 e.SourceFile = path;
             }
             return exports.Where(e => e.Player.Length > 0).ToList();
         }
-        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException or NotSupportedException or InvalidOperationException)
+        catch (Exception)
         {
+            // A teammate's file is untrusted: whatever is wrong with it, it is simply not used.
             return null;
         }
     }
@@ -228,8 +230,9 @@ public static class TeamShare
                     }
                     all.AddRange(hit.Exports);
                 }
-                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                catch (Exception)
                 {
+                    // unreadable file: skipped
                 }
             }
         }
