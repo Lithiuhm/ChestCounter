@@ -28,15 +28,15 @@ public static class OverlayModel
             avgText = Math.Round(avg, MidpointRounding.AwayFromZero).ToString("0", L.Culture);
             sessionDetail = $"{L.Count(session.Count, "partida", "partidas", "match", "matches")} · {L.T("media", "avg.")} {avgText}";
         }
-        rows.Add(new OverlayRow(L.T("Sesión", "Session"),
-            L.Count(session.Sum(m => m.ChestsOpened) + liveChests, "cofre", "cofres", "chest", "chests"), Detail: sessionDetail));
+        // Solo números en las columnas: la etiqueta ya dice qué son, y un número largo no choca con la columna de al lado.
+        rows.Add(new OverlayRow(L.T("Sesión", "Session"), L.N(session.Sum(m => m.ChestsOpened) + liveChests), Detail: sessionDetail));
         rows.Add(new OverlayRow(L.T("Media", "Avg."), avgText));
 
         var last = d.Matches.OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).FirstOrDefault();
         // Entre partidas el contador derecho ya muestra la última partida: la fila solo aparece durante una partida.
         if (last != null && (live != null || inProgress))
         {
-            rows.Add(new OverlayRow(L.T("Anterior", "Previous"), L.Count(last.ChestsOpened, "cofre", "cofres", "chest", "chests")));
+            rows.Add(new OverlayRow(L.T("Anterior", "Previous"), L.N(last.ChestsOpened)));
         }
 
         var treasures = d.Matches.Sum(m => m.TreasureFinds.Count) + liveTreasures;

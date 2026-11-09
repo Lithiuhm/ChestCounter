@@ -195,7 +195,10 @@ public sealed class MainForm : Form
 
         // Línea de sesión: la primera fila del modelo (cofres y, detrás, partidas y media).
         var session = v.Rows.FirstOrDefault();
-        _session.Text = session == null ? "" : $"{L.T("Sesión", "Session")}: {session.Value}" + (session.Detail != null ? $"  ·  {session.Detail}" : "");
+        var sessionChests = session != null && int.TryParse(session.Value, System.Globalization.NumberStyles.None, L.Culture, out var n)
+            ? L.Count(n, "cofre", "cofres", "chest", "chests")
+            : session?.Value;
+        _session.Text = session == null ? "" : $"{L.T("Sesión", "Session")}: {sessionChests}" + (session.Detail != null ? $"  ·  {session.Detail}" : "");
 
         var st = s.Stats;
         _statToday.Text = L.N(st.Today);
