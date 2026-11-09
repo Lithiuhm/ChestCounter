@@ -56,6 +56,9 @@ public sealed class Monitor
     private volatile bool _reportRequested;
     private volatile string? _shownKey;
     private volatile string? _shownName;
+    private volatile IReadOnlySet<string> _ownKeys = new HashSet<string>();
+    private DateTime _nextTeamCheck = DateTime.UtcNow.AddSeconds(20);
+    private string? _teamSignature;
     private DateTime _nextScan = DateTime.UtcNow;
     private volatile UpdateInfo? _update;
     private bool _updateAnnounced;
@@ -176,6 +179,31 @@ public sealed class Monitor
         });
         _reportRequested = true;
         _wake.Set();
+    }
+
+    /// <summary>Carpeta compartida con el equipo (null = no compartir). Rehace el informe enseguida.</summary>
+    public void ChangeTeamFolder(string? folder)
+    {
+        Change(c => c.TeamFolder = string.IsNullOrWhiteSpace(folder) ? null : folder);
+        RequestReport();
+    }
+
+    /// <summary>Rehace el informe (y publica el resumen en la carpeta de equipo) en el hilo de vigilancia.</summary>
+    public void RequestReport()
+    {
+        _reportRequested = true;
+        _wake.Set();
+    }
+
+    /// <summary>Cuentas de este PC (para no importar tus propios datos como si fueran de un compañero).</summary>
+    public IReadOnlySet<string> OwnKeys => _ownKeys;
+
+    /// <summary>Resumen para compartir de la cuenta mostrada (copia de la lista: el hilo de vigilancia puede añadir partidas).</summary>
+    public TeamExport? OwnExport()
+    {
+        var snapshot = new TrackerData { Matches = _data.Matches.ToArray().ToList() };
+        var exports = TeamShare.Build(snapshot);
+        return exports.FirstOrDefault(e => e.Key == _shownKey) ?? exports.FirstOrDefault();
     }
 
     public void ChangeDemosFolder(string folder)
@@ -299,6 +327,26 @@ public sealed class Monitor
             }
 
             changed |= CheckUpdate();
+
+            // Archivos de los compañeros: si alguno cambió (carpeta en la nube sincronizada), se rehace el informe.
+            if (DateTime.UtcNow >= _nextTeamCheck)
+            {
+                _nextTeamCheck = DateTime.UtcNow.AddSeconds(20);
+                try
+                {
+                    var signature = TeamShare.Signature(_store, _config);
+                    if (_teamSignature != null && signature != _teamSignature)
+                    {
+                        _reportRequested = true;
+                    }
+                    _teamSignature = signature;
+                }
+                catch (Exception ex)
+                {
+                    ErrorLog.Write("Carpeta de equipo", ex);
+                }
+            }
+
             if (_reportRequested)
             {
                 _reportRequested = false;
@@ -320,6 +368,7 @@ public sealed class Monitor
         var shown = Profiles.Current(_data, _config);
         _shownKey = shown?.Key;
         _shownName = shown?.Name;
+        _ownKeys = Profiles.List(_data).SelectMany(p => new[] { p.Key, p.Name }).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var view = OverlayModel.Build(Profiles.View(_data, _config), _tracker.LiveMatch, _tracker.IsLive, Profiles.InitialChests(_data, _config));
         ReportWriter.WriteOverlay(_store, view);
         ObsServer.Update(view);

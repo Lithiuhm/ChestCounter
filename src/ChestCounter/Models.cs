@@ -126,6 +126,12 @@ public sealed class Config
     /// Added to the total only (not to averages, records or per-day figures).
     /// </summary>
     public Dictionary<string, int> InitialChests { get; set; } = new();
+
+    /// <summary>
+    /// Folder shared with the teammates (OneDrive, Google Drive, Dropbox...): each counter writes its summary there and
+    /// reads the others' to show their exact chests. Null = not shared.
+    /// </summary>
+    public string? TeamFolder { get; set; }
 }
 
 public sealed class TrackerData

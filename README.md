@@ -27,7 +27,7 @@ Fortnite puede grabar un **archivo de repetición** de cada partida en tu PC. Co
 - ✅ **Solo lee archivos de repetición**: los archivos `.replay` que Fortnite escribe en `%LOCALAPPDATA%\FortniteGame\Saved\Demos`. Se abren en modo solo lectura y nunca se modifican.
 - ✅ **Sin modificar el juego**: no se toca nada de la carpeta de instalación de Fortnite, no se añade ni se parchea ningún archivo.
 - ✅ **Sin acceso a la memoria del juego**: la herramienta nunca lee, escribe ni inyecta nada en el proceso de Fortnite. No interactúa en absoluto con el juego en marcha.
-- ✅ **No envía datos a ningún sitio**: sin inicio de sesión, sin acceso a tu cuenta de Epic, sin telemetría. El único acceso a la red es la comprobación de nuevas versiones en GitHub, que se puede desactivar en los ajustes.
+- ✅ **No envía datos a ningún sitio**: sin inicio de sesión, sin acceso a tu cuenta de Epic, sin telemetría. El único acceso a la red es la comprobación de nuevas versiones en GitHub, que se puede desactivar en los ajustes. Si compartes con tu equipo, solo se escribe un resumen de tus partidas en la carpeta que tú elijas.
 - ✅ **Ligero**: funciona con prioridad baja (y en "modo de eficiencia" en Windows 11), duerme entre partidas, y el overlay solo se vuelve a dibujar cuando cambia un número.
 
 > [!IMPORTANT]
@@ -87,7 +87,7 @@ La ventana tiene tres botones: **Overlay** (mostrar u ocultar el overlay; punto 
 
 La ventana se puede **redimensionar y maximizar**: todo crece en proporción (tarjetas, cifras y gráfico) y ningún texto se corta; si una cifra no cabe en su tarjeta, su letra se reduce un poco.
 
-En **Ajustes** puedes abrir con Fortnite, abrir el informe al iniciar, elegir las actualizaciones, escribir los **cofres abiertos antes del contador** (un estimado que se suma a tu total), copiar la **dirección del overlay para OBS** y cambiar la carpeta de repeticiones. Abajo se ve la versión instalada.
+En **Ajustes** puedes abrir con Fortnite, abrir el informe al iniciar, elegir las actualizaciones, escribir los **cofres abiertos antes del contador** (un estimado que se suma a tu total), copiar la **dirección del overlay para OBS**, cambiar la carpeta de repeticiones y compartir tus cofres con tu **equipo** (ver [Compañeros](#compañeros)). Abajo se ve la versión instalada.
 
 <p align="center"><img src="docs/settings.png" alt="Ajustes" width="400"></p>
 
@@ -101,7 +101,7 @@ De arriba abajo verás: el total de cofres, la última partida, la sesión, hoy,
 - **Cofres por día:** gráfico de los últimos 30 días con escala, la media diaria (línea discontinua) y hoy en cian. Pasa el ratón por una barra para ver el día y sus cofres.
 - **Por tipo de cofre** y **de dónde vienen los tesoros**, con una barra de proporción por fila. Las cajas de munición, de comida y los cañones de botín aparecen aparte, fuera del total.
 - **Tesoros obtenidos:** cada tesoro con su partida, el momento y el cofre de origen.
-- **Compañeros** (en dúos, tríos y escuadrones): cada compañero con las partidas jugadas juntos, los cofres que se le vieron abrir, su media y su récord, y tus cofres en esas mismas partidas.
+- **Compañeros** (en dúos, tríos y escuadrones): cada compañero con las partidas jugadas juntos, sus cofres (exactos si comparte sus datos, si no los vistos), su media, su récord, tus cofres en esas mismas partidas y su historial.
 - **Últimas partidas** (las 100 más recientes): modo, puesto (🏆 victoria en dorado, top 10 en verde), cofres y tesoros.
 
 <p align="center"><img src="docs/report.png" alt="Informe" width="820"></p>
@@ -116,12 +116,22 @@ El juego solo envía ids de premios, no nombres: `treasures.json` los asigna a n
 
 ## Compañeros
 
-En dúos, tríos y escuadrones, cada partida guarda también a tus compañeros y los cofres que abrieron. El informe junta su histórico: partidas juntos, cofres vistos, media y récord.
+En dúos, tríos y escuadrones, cada partida guarda también a tus compañeros y los cofres que abrieron. El informe junta su histórico (partidas juntos, sus cofres, media, récord y tus cofres en esas partidas), y en **Últimas partidas** la columna **Equipo** suma tus cofres y los suyos.
 
-> [!NOTE]
-> Los cofres de tus compañeros salen de **tu** replay, y Fortnite solo graba lo que pasa cerca de ti. Cuando un compañero se aleja, sus cofres no se ven: la cifra es un **mínimo**, no su total. Tu propio total no cambia.
+### Cofres vistos (sin hacer nada)
 
-Las partidas contadas con versiones anteriores no tienen compañeros, salvo las que aún tengan su replay en la carpeta (se vuelven a analizar solas al abrir la herramienta).
+Salen de **tu** replay, y Fortnite solo graba lo que pasa cerca de ti. Cuando un compañero se aleja, sus cofres no se ven: la cifra es un **mínimo** y se muestra con **≥**. Tu propio total no cambia.
+
+### Cofres exactos (compartiendo)
+
+Si tus compañeros también usan Chest Counter, podéis compartir vuestros datos y cada uno ve los cofres **exactos** de los demás, sacados de sus propios replays. En **Ajustes → Equipo** hay dos formas:
+
+- **Carpeta compartida** (recomendada): elegid todos la misma carpeta de OneDrive, Google Drive, Dropbox… Tras cada partida, el contador deja ahí tu resumen y lee el de los demás. Todo se actualiza solo.
+- **Exportar / Importar**: exporta tu archivo (`.chestcounter.json`) y pásaselo por Discord, WhatsApp…; tu compañero lo abre con **Importar**. También se puede importar su `data.json`.
+
+El resumen solo contiene **tus** partidas: fecha, modo, puesto, cofres y número de tesoros. No contiene nombres de otros jugadores. Chest Counter no envía nada a ningún sitio: solo escribe en la carpeta que elijas, y es tu programa de nube el que la sincroniza.
+
+Las partidas se emparejan por su identificador. Si coincidís en una partida con el mismo puesto, cuenta como jugada juntos aunque su replay ya no exista, así que también se recuperan partidas antiguas. Los compañeros que comparten llevan **✓ comparte**, y **Su historial** muestra todo lo que han contado, contigo o sin ti.
 
 ## Perfiles (varias cuentas en un PC)
 
@@ -143,6 +153,7 @@ Todo se guarda en `%APPDATA%\ChestCounter`:
 | `data.json` | Tu historial completo. **Haz copia de seguridad** si cambias de PC. |
 | `config.json` | Perfil, carpeta de repeticiones, posición del overlay y ajustes. |
 | `treasures.json` | Nombres de los premios de la caza del tesoro. |
+| `team\` | Archivos importados de tus compañeros. |
 | `errors.log` | Detalles de las repeticiones que no se pudieron leer, para adjuntar a un informe de error. |
 
 Fortnite borra los replays antiguos, pero **tu historial no se borra**: cada partida se guarda en `data.json` en cuanto se cuenta, y el informe y las estadísticas salen de ahí. Por eso, aunque el replay ya no exista, la partida sigue en tus totales.
