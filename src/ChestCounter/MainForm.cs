@@ -118,12 +118,12 @@ public sealed class MainForm : Form
 
         // Aviso (versión nueva, cierre con Fortnite) o botón de actualizar: ocupa el sitio de los botones.
         _noticeCard = new Card { Location = new Point(RightX, 277), Size = new Size(RightW, 40), Radius = 12, BackColor = Theme.Card, Visible = false };
-        _notice = Lbl(_noticeCard, "", 8.5f, FontStyle.Regular, Theme.VioletSoft, new Point(13, 0), new Size(RightW - 26, 40), ContentAlignment.MiddleLeft);
+        _notice = Lbl(_noticeCard, "", 8.5f, FontStyle.Regular, Theme.AccentSoft, new Point(13, 0), new Size(RightW - 26, 40), ContentAlignment.MiddleLeft);
         _noticeCard.Click += (_, _) => { if (_autoCloseOffer) _monitor.KeepOpen(); };
         _notice.Click += (_, _) => { if (_autoCloseOffer) _monitor.KeepOpen(); };
         Controls.Add(_noticeCard);
 
-        _update = new PillButton { Location = new Point(RightX, 277), Size = new Size(RightW, 40), Radius = 12, Visible = false, BackColor = Theme.Violet, HoverColor = Color.FromArgb(142, 116, 255), ForeColor = Color.White };
+        _update = new PillButton { Location = new Point(RightX, 277), Size = new Size(RightW, 40), Radius = 12, Visible = false, BackColor = Theme.Accent, HoverColor = Theme.AccentHover, ForeColor = Theme.AccentInk };
         _update.Click += (_, _) => _monitor.InstallUpdate();
         Controls.Add(_update);
 

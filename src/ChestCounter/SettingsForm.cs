@@ -4,14 +4,18 @@ using System.Windows.Forms;
 
 namespace ChestCounter;
 
-/// <summary>Ajustes: tarjetas redondeadas, todo en oscuro. Cada cambio se aplica y se guarda al instante.</summary>
+/// <summary>
+/// Ajustes con el mismo aspecto que la ventana principal: dos columnas de tarjetas, títulos pequeños en gris y
+/// cifras grandes de color. Cada cambio se aplica y se guarda al instante.
+/// </summary>
 [SupportedOSPlatform("windows")]
 public sealed class SettingsForm : Form
 {
-    private static readonly string[] UpdateLabels = { L.T("Preguntar", "Ask"), L.T("Automáticas", "Automatic"), L.T("Desactivadas", "Off") };
+    private static readonly string[] UpdateLabels = { L.T("Preguntar", "Ask"), L.T("Automáticas", "Automatic"), L.T("Nunca", "Never") };
     private static readonly string[] UpdateModes = { "prompt", "auto", "off" };
 
-    private const int Margin0 = 20, Width0 = 420, CardW = Width0 - 2 * Margin0;
+    // Misma rejilla que la ventana principal: columna izquierda y derecha.
+    private const int LeftX = 15, LeftW = 267, RightX = 297, RightW = 280;
     private const int MaxInitial = 1_000_000;
 
     private readonly Monitor _monitor;
@@ -38,14 +42,21 @@ public sealed class SettingsForm : Form
         MinimizeBox = false;
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(Width0, 622);
+        ClientSize = new Size(592, 341);
         Icon = AppIcon.Load();
 
-        Lbl(this, L.T("Ajustes", "Settings"), 14f, FontStyle.Bold, Theme.Ink, new Point(Margin0, 14), new Size(CardW, 30));
+        // Cabecera, como en la ventana principal.
+        Lbl(this, L.T("AJUSTES", "SETTINGS"), 8.5f, FontStyle.Bold, Theme.Cyan, new Point(LeftX, 14), new Size(200, 18));
+        Lbl(this, L.T($"Versión {AppInfo.VersionText}", $"Version {AppInfo.VersionText}"), 8.0f, FontStyle.Regular, Theme.Muted,
+            new Point(RightX, 13), new Size(RightW, 18), ContentAlignment.TopRight);
 
-        // ---- General: dos interruptores
-        var general = AddCard(56, 88);
-        _fortnite = AddToggleRow(general, L.T("Abrir el contador cuando empiece Fortnite", "Open the counter when Fortnite starts"), 10, config.StartWithFortnite);
+        // ---- Columna izquierda ---------------------------------------------------------------
+
+        // Inicio: dos interruptores.
+        var start = AddCard(LeftX, 40, LeftW, 100, 16);
+        CardTitle(start, L.T("Inicio", "Startup"));
+        _fortnite = AddToggleRow(start, L.T("Abrir con Fortnite", "Open with Fortnite"),
+            L.T("Cuenta tus partidas sin pensar en ello", "Counts your matches without thinking about it"), 24, config.StartWithFortnite);
         _fortnite.CheckedChanged += (_, _) =>
         {
             if (_loading)
@@ -62,19 +73,17 @@ public sealed class SettingsForm : Form
                     L.T("Ajustes", "Settings"), MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         };
-        var divider = new Panel { BackColor = Theme.CardEdge, Location = new Point(16, 44), Size = new Size(CardW - 32, 1) };
-        general.Controls.Add(divider);
-        _report = AddToggleRow(general, L.T("Abrir el informe al iniciar", "Open the report at startup"), 48, config.OpenReportOnStart);
+        _report = AddToggleRow(start, L.T("Abrir el informe al iniciar", "Open the report at startup"), null, 64, config.OpenReportOnStart);
         _report.CheckedChanged += (_, _) => { if (!_loading) _monitor.Change(c => c.OpenReportOnStart = _report.Checked); };
 
-        // ---- Actualizaciones: tres opciones en píldoras
-        var updates = AddCard(156, 76);
+        // Actualizaciones: tres píldoras.
+        var updates = AddCard(LeftX, 149, LeftW, 74, 14);
         CardTitle(updates, L.T("Actualizaciones", "Updates"));
-        var pillW = (CardW - 32 - 2 * 8) / 3;
+        var pillW = (LeftW - 26 - 2 * 6) / 3;
         for (var i = 0; i < UpdateModes.Length; i++)
         {
             var index = i;
-            var pill = new PillButton { Text = UpdateLabels[i], Location = new Point(16 + i * (pillW + 8), 34), Size = new Size(pillW, 30), Radius = 10, Font = Theme.Text(9f) };
+            var pill = new PillButton { Text = UpdateLabels[i], Location = new Point(13 + i * (pillW + 6), 30), Size = new Size(pillW, 32), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold) };
             pill.Click += (_, _) => SelectUpdateMode(index, save: true);
             updates.Controls.Add(pill);
             _updates[i] = pill;
@@ -82,17 +91,39 @@ public sealed class SettingsForm : Form
         var mode = Array.IndexOf(UpdateModes, config.UpdateMode);
         SelectUpdateMode(mode < 0 ? 0 : mode, save: false);
 
-        // ---- Cofres de antes del contador: − [ n ] +
-        var initial = AddCard(244, 96);
-        CardTitle(initial, L.T("Cofres abiertos antes del contador", "Chests opened before the counter"));
-        var minus = new PillButton { Text = "−", Location = new Point(16, 34), Size = new Size(34, 30), Radius = 10, Font = Theme.Text(11f, FontStyle.Bold) };
-        _initial = AddField(initial, new Point(56, 34), 120, readOnly: false, Math.Min(MaxInitial, monitor.InitialChests).ToString(L.Culture));
-        _initial.TextAlign = HorizontalAlignment.Center;
-        var plus = new PillButton { Text = "+", Location = new Point(182, 34), Size = new Size(34, 30), Radius = 10, Font = Theme.Text(11f, FontStyle.Bold) };
-        minus.Click += (_, _) => StepInitial(-10);
+        // Carpeta de replays y datos.
+        var folderCard = AddCard(LeftX, 232, LeftW, 94, 14);
+        CardTitle(folderCard, L.T("Carpeta de replays", "Replays folder"));
+        _folder = AddField(folderCard, new Point(13, 26), LeftW - 26 - 72, config.DemosFolder);
+        var browse = new PillButton { Text = L.T("Cambiar", "Change"), Location = new Point(LeftW - 13 - 66, 26), Size = new Size(66, 30), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold) };
+        browse.Click += (_, _) => ChooseFolder();
+        folderCard.Controls.Add(browse);
+        Lbl(folderCard, L.T("Tus datos se guardan en ", "Your data is saved in ") + store.Folder,
+            7.5f, FontStyle.Regular, Theme.Muted, new Point(13, 62), new Size(LeftW - 26, 28));
+
+        // ---- Columna derecha -----------------------------------------------------------------
+
+        // Cofres de antes del contador: cifra grande en ámbar, editable, con − / +.
+        var initial = AddCard(RightX, 40, RightW, 100, 16);
+        CardTitle(initial, L.T("Cofres antes del contador", "Chests before the counter"));
+        _initial = new TextBox
+        {
+            BorderStyle = BorderStyle.None,
+            BackColor = Theme.Card,
+            ForeColor = Theme.Amber,
+            Font = Theme.Text(24f, FontStyle.Bold),
+            Location = new Point(15, 26),
+            Width = 160,
+            MaxLength = 7,
+            Text = Math.Min(MaxInitial, monitor.InitialChests).ToString(L.Culture),
+        };
+        initial.Controls.Add(_initial);
+        var plus = new PillButton { Text = "+", Location = new Point(RightW - 13 - 34, 22), Size = new Size(34, 28), Radius = 9, Font = Theme.Text(11f, FontStyle.Bold) };
+        var minus = new PillButton { Text = "−", Location = new Point(RightW - 13 - 34, 54), Size = new Size(34, 28), Radius = 9, Font = Theme.Text(11f, FontStyle.Bold) };
         plus.Click += (_, _) => StepInitial(10);
-        initial.Controls.Add(minus);
+        minus.Click += (_, _) => StepInitial(-10);
         initial.Controls.Add(plus);
+        initial.Controls.Add(minus);
         _initial.KeyPress += (_, e) => e.Handled = !char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar);
         _initial.TextChanged += (_, _) =>
         {
@@ -103,23 +134,26 @@ public sealed class SettingsForm : Form
         };
         var profileName = monitor.ShownProfileName;
         Lbl(initial, profileName != null
-                ? L.T($"Un estimado: se suma al total de {profileName}.", $"An estimate: added to {profileName}'s total.")
-                : L.T("Un estimado: se suma al total de cofres.", "An estimate: added to the chest total."),
-            8.5f, FontStyle.Regular, Theme.Muted, new Point(16, 70), new Size(CardW - 32, 20));
+                ? L.T($"estimado · se suma al total de {profileName}", $"estimate · added to {profileName}'s total")
+                : L.T("estimado · se suma a tu total", "estimate · added to your total"),
+            8.0f, FontStyle.Regular, Theme.Muted, new Point(16, 74), new Size(RightW - 70, 16));
 
-        // ---- OBS
-        var obsCard = AddCard(352, 78);
-        CardTitle(obsCard, L.T("Overlay para OBS (fuente de navegador)", "Overlay for OBS (browser source)"));
+        // OBS: dirección y estado.
+        var obsCard = AddCard(RightX, 149, RightW, 74, 14);
+        CardTitle(obsCard, L.T("Overlay para OBS", "Overlay for OBS"));
         var obsUrl = ObsServer.Url;
-        var obs = AddField(obsCard, new Point(16, 34), CardW - 32 - 96, readOnly: true,
-            obsUrl ?? L.T("No disponible (puerto ocupado)", "Not available (port in use)"));
-        var copy = new PillButton { Text = L.T("Copiar", "Copy"), Location = new Point(CardW - 16 - 88, 34), Size = new Size(88, 30), Radius = 10, Enabled = obsUrl != null };
+        var stateCard = new Card { Location = new Point(RightW - 13 - 70, 6), Size = new Size(70, 18), Radius = 9, BackColor = Theme.Panel };
+        Lbl(stateCard, obsUrl != null ? L.T("● ACTIVO", "● ON") : L.T("● NO", "● OFF"), 7.0f, FontStyle.Bold,
+            obsUrl != null ? Theme.Mint : Theme.Red, new Point(0, 0), new Size(70, 18), ContentAlignment.MiddleCenter);
+        obsCard.Controls.Add(stateCard);
+        var obs = AddField(obsCard, new Point(13, 30), RightW - 26 - 72, obsUrl ?? L.T("Puerto ocupado", "Port in use"));
+        var copy = new PillButton { Text = L.T("Copiar", "Copy"), Location = new Point(RightW - 13 - 66, 30), Size = new Size(66, 30), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold), Enabled = obsUrl != null };
         copy.Click += (_, _) =>
         {
             try
             {
                 Clipboard.SetText(obsUrl!);
-                copy.Text = L.T("¡Copiado!", "Copied!");
+                copy.Text = "✓";
             }
             catch
             {
@@ -129,28 +163,22 @@ public sealed class SettingsForm : Form
         };
         obsCard.Controls.Add(copy);
 
-        // ---- Carpeta de replays y datos
-        var folderCard = AddCard(442, 110);
-        CardTitle(folderCard, L.T("Carpeta de replays", "Replays folder"));
-        _folder = AddField(folderCard, new Point(16, 34), CardW - 32 - 96, readOnly: true, config.DemosFolder);
-        var browse = new PillButton { Text = L.T("Cambiar…", "Change…"), Location = new Point(CardW - 16 - 88, 34), Size = new Size(88, 30), Radius = 10 };
-        browse.Click += (_, _) => ChooseFolder();
-        folderCard.Controls.Add(browse);
-        Lbl(folderCard, L.T("Tus datos (historial y ajustes) se guardan en:", "Your data (history and settings) is saved in:") + "\n" + store.Folder,
-            8.5f, FontStyle.Regular, Theme.Muted, new Point(16, 70), new Size(CardW - 32, 34));
+        // Atajos del overlay.
+        var keys = AddCard(RightX, 232, RightW, 45, 12);
+        Lbl(keys, L.T("Atajos del overlay", "Overlay shortcuts"), 7.5f, FontStyle.Regular, Theme.Muted, new Point(13, 6), new Size(RightW - 26, 13));
+        Lbl(keys, L.T("Ctrl+Mayús+O mostrar  ·  Ctrl+Mayús+L fijar", "Ctrl+Shift+O show  ·  Ctrl+Shift+L lock"),
+            8.0f, FontStyle.Bold, Theme.Ink, new Point(13, 21), new Size(RightW - 26, 18));
 
-        // ---- Pie: versión y Cerrar
-        Lbl(this, L.T($"Versión {AppInfo.VersionText}", $"Version {AppInfo.VersionText}"), 8.5f, FontStyle.Regular, Theme.Muted,
-            new Point(Margin0, 574), new Size(200, 36), ContentAlignment.MiddleLeft);
+        // Cerrar, en el sitio de los botones de la ventana principal.
         var close = new PillButton
         {
             Text = L.T("Cerrar", "Close"),
-            Location = new Point(Width0 - Margin0 - 120, 574),
-            Size = new Size(120, 36),
+            Location = new Point(RightX, 286),
+            Size = new Size(RightW, 40),
             Radius = 12,
-            BackColor = Theme.Violet,
-            HoverColor = Color.FromArgb(142, 116, 255),
-            ForeColor = Color.White,
+            BackColor = Theme.Accent,
+            HoverColor = Theme.AccentHover,
+            ForeColor = Theme.AccentInk,
             DialogResult = DialogResult.OK,
         };
         Controls.Add(close);
@@ -170,9 +198,9 @@ public sealed class SettingsForm : Form
         for (var i = 0; i < _updates.Length; i++)
         {
             var on = i == index;
-            _updates[i].BackColor = on ? Theme.Violet : Theme.Panel;
-            _updates[i].HoverColor = on ? Color.FromArgb(142, 116, 255) : Theme.PanelHover;
-            _updates[i].ForeColor = on ? Color.White : Theme.Ink;
+            _updates[i].BackColor = on ? Theme.Accent : Theme.Panel;
+            _updates[i].HoverColor = on ? Theme.AccentHover : Theme.PanelHover;
+            _updates[i].ForeColor = on ? Theme.AccentInk : Theme.Ink;
             _updates[i].Invalidate();
         }
         if (save)
@@ -208,29 +236,36 @@ public sealed class SettingsForm : Form
 
     // ---- Piezas de la ventana ----------------------------------------------------------------
 
-    private Card AddCard(int top, int height)
+    private Card AddCard(int x, int y, int w, int h, int radius)
     {
-        var card = new Card { Location = new Point(Margin0, top), Size = new Size(CardW, height), Radius = 14, BackColor = Theme.Card };
+        var card = new Card { Location = new Point(x, y), Size = new Size(w, h), Radius = radius, BackColor = Theme.Card };
         Controls.Add(card);
         return card;
     }
 
+    /// <summary>Título pequeño en gris, como "Hoy" o "Mejor día" en la ventana principal.</summary>
     private static void CardTitle(Card card, string text) =>
-        Lbl(card, text, 9f, FontStyle.Bold, Theme.Ink, new Point(16, 10), new Size(CardW - 32, 20));
+        Lbl(card, text, 8.0f, FontStyle.Regular, Theme.Muted, new Point(13, 7), new Size(card.Width - 100, 15));
 
-    /// <summary>Texto a la izquierda y un interruptor a la derecha; clicar el texto también lo cambia.</summary>
-    private static ToggleSwitch AddToggleRow(Card card, string text, int top, bool value)
+    /// <summary>Texto (y una línea gris opcional) a la izquierda y un interruptor a la derecha; clicar el texto también lo cambia.</summary>
+    private static ToggleSwitch AddToggleRow(Card card, string text, string? hint, int top, bool value)
     {
-        var toggle = new ToggleSwitch { Location = new Point(CardW - 16 - 40, top + 4), Checked = value };
-        var label = Lbl(card, text, 9f, FontStyle.Regular, Theme.Ink, new Point(16, top), new Size(CardW - 32 - 52, 30), ContentAlignment.MiddleLeft);
+        var toggle = new ToggleSwitch { Location = new Point(card.Width - 13 - 40, top + 5), Checked = value };
+        var label = Lbl(card, text, 9.5f, FontStyle.Bold, Theme.Ink, new Point(13, top), new Size(card.Width - 26 - 48, 18));
         label.Cursor = Cursors.Hand;
         label.Click += (_, _) => toggle.Checked = !toggle.Checked;
+        if (hint != null)
+        {
+            var small = Lbl(card, hint, 7.5f, FontStyle.Regular, Theme.Muted, new Point(13, top + 18), new Size(card.Width - 26 - 48, 14));
+            small.Cursor = Cursors.Hand;
+            small.Click += (_, _) => toggle.Checked = !toggle.Checked;
+        }
         card.Controls.Add(toggle);
         return toggle;
     }
 
-    /// <summary>Campo de texto sin borde dentro de un fondo redondeado.</summary>
-    private static TextBox AddField(Card card, Point at, int width, bool readOnly, string text)
+    /// <summary>Campo de solo lectura sin borde dentro de un fondo redondeado.</summary>
+    private static TextBox AddField(Card card, Point at, int width, string text)
     {
         var holder = new Card { Location = at, Size = new Size(width, 30), Radius = 10, BackColor = Theme.Panel };
         var box = new TextBox
@@ -238,8 +273,8 @@ public sealed class SettingsForm : Form
             BorderStyle = BorderStyle.None,
             BackColor = Theme.Panel,
             ForeColor = Theme.Ink,
-            Font = Theme.Text(9.5f),
-            ReadOnly = readOnly,
+            Font = Theme.Text(9f),
+            ReadOnly = true,
             Text = text,
             Width = width - 20,
         };

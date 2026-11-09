@@ -22,12 +22,13 @@ Chest Counter reads the replays Fortnite saves after each match and keeps a runn
 
 ## What's new in 2.0.11
 
-- **Redesigned, more compact overlay:** colored stripe on the left (gold between matches, green during a match), a **LIVE** pill and the previous or current match in its own box.
+- **Redesigned, more compact overlay:** colored stripe on the left (gold between matches, green during a match), a **LIVE** pill, the previous or current match in its own box and the **session average**.
 - **Overlay off by default:** turn it on with the **Overlay** button or Ctrl+Shift+O. The button shows a green (on) or red (off) dot.
 - **Overlay for OBS by URL:** while the counter is open, the overlay is served at **http://localhost:7373/**, ready for a browser source (copy it from **Settings**).
 - **Chests from before the counter:** in **Settings** you can type an estimate of the chests you opened before using the tool; it is added to your total (not to averages or records).
 - **Version shown:** in the window title and in **Settings**.
-- **Redesigned Settings:** fully dark, with rounded cards, switches and rounded buttons.
+- **Redesigned Settings** in the same style as the main window: rounded cards, switches, fully dark.
+- **New palette:** cyan for actions, blue in the chart and pink for treasures.
 - **Spanish and English only.**
 
 ## What's new in 2.0
@@ -80,7 +81,7 @@ When this option is on, a tiny invisible process starts with Windows and checks 
 ## The overlay
 
 - **Big numbers**: your **total** chests (gold) and, in the box, the chests of the **previous** match (or the **current** one while you play).
-- **Session**: chests since the tool was started, with the number of matches and the average.
+- **Session**: chests since the tool was started. **Avg.**: average chests per match in this session.
 - **Previous** (only during a match): chests of your previous match. **Treasures**: treasures found so far.
 - During a match, the **MATCH IN PROGRESS** badge appears and the box shows "…" until the chests can be read; then it switches to **LIVE** with the chests of the current match.
 

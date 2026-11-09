@@ -121,9 +121,9 @@ public static class ReportWriter
     private static DateTime When(MatchRecord m) => (m.MatchStartUtc ?? m.AnalyzedAtUtc).ToLocalTime();
 
     private const string Style = """
-        :root{--bg:#f6f5f2;--card:#fff;--ink:#1d1d1f;--muted:#6b6b70;--line:#e4e2dd;--accent:#b7791f;--accent-soft:#fbf1dc;--good:#2f7d4f;--star:#8a3ffc}
-        @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0e14;--card:#151a24;--ink:#e6eaf2;--muted:#7a8496;--line:#263041;--accent:#38d6f0;--accent-soft:#102a33;--good:#3ddc97;--star:#b4a0ff}}
-        :root[data-theme="dark"]{--bg:#0b0e14;--card:#151a24;--ink:#e6eaf2;--muted:#7a8496;--line:#263041;--accent:#38d6f0;--accent-soft:#102a33;--good:#3ddc97;--star:#b4a0ff}
+        :root{--bg:#f6f5f2;--card:#fff;--ink:#1d1d1f;--muted:#6b6b70;--line:#e4e2dd;--accent:#b7791f;--accent-soft:#fbf1dc;--good:#2f7d4f;--star:#d6336c}
+        @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0e14;--card:#151a24;--ink:#e6eaf2;--muted:#7a8496;--line:#263041;--accent:#38d6f0;--accent-soft:#102a33;--good:#3ddc97;--star:#ff80aa}}
+        :root[data-theme="dark"]{--bg:#0b0e14;--card:#151a24;--ink:#e6eaf2;--muted:#7a8496;--line:#263041;--accent:#38d6f0;--accent-soft:#102a33;--good:#3ddc97;--star:#ff80aa}
         *{box-sizing:border-box}
         body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,-apple-system,sans-serif}
         main{max-width:1040px;margin:0 auto;padding:28px 16px 48px}
@@ -370,7 +370,7 @@ public static class ReportWriter
         .chip.live .big,.chip.live .cap{color:#3ddc97}.chip.none .big{color:#505868}
         .stats{display:flex;justify-content:space-between;gap:14px;border-top:1px solid #222938;padding-top:7px}
         .stat .cap{font-size:10px}.stat b{display:block;font-size:16px;font-weight:700}
-        .stat.t b{color:#c4b0ff}.stat small{display:block;font-size:11px;font-weight:600;color:#7a8496}
+        .stat.t b{color:#ff80aa}.stat small{display:block;font-size:11px;font-weight:600;color:#7a8496}
         """;
 
     /// <summary>The overlay card (shared by overlay.html and the OBS page served by the tool).</summary>
@@ -379,7 +379,7 @@ public static class ReportWriter
         var stats = new StringBuilder();
         foreach (var r in v.Rows)
         {
-            stats.Append($"<div class=\"stat{(r.Treasure ? " t" : "")}\"><span class=\"cap\">{H(r.Label)}</span><b>{H(r.Value)}</b>{(r.Detail != null ? $"<small>{H(r.Detail)}</small>" : "")}</div>");
+            stats.Append($"<div class=\"stat{(r.Treasure ? " t" : "")}\"><span class=\"cap\">{H(r.Label)}</span><b>{H(r.Value)}</b></div>");
         }
         var badge = v.Badge != null ? $"<span class=\"pill\">{H(v.Badge.TrimStart('●', ' '))}</span>" : "";
         var chip = v.Current == null ? "none" : v.CurrentLive ? "live" : "";

@@ -210,18 +210,18 @@ public sealed class ToggleSwitch : Control
         g.Clear(Parent?.BackColor ?? Theme.Card);
         var track = new RectangleF(1, 1, Width - 3, Height - 3);
         using (var path = Shape.Rounded(track, track.Height / 2))
-        using (var fill = new SolidBrush(_checked ? Theme.Violet : Theme.Line))
+        using (var fill = new SolidBrush(_checked ? Theme.Accent : Theme.Line))
         {
             g.FillPath(fill, path);
             if (Focused)
             {
-                using var ring = new Pen(Theme.VioletSoft, 1f);
+                using var ring = new Pen(Theme.AccentSoft, 1f);
                 g.DrawPath(ring, path);
             }
         }
         var d = track.Height - 6;
         var x = _checked ? track.Right - d - 3 : track.Left + 3;
-        using var knob = new SolidBrush(_checked ? Color.White : Theme.Muted);
+        using var knob = new SolidBrush(_checked ? Theme.AccentInk : Theme.Muted);
         g.FillEllipse(knob, x, track.Top + 3, d, d);
     }
 }

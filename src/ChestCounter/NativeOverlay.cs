@@ -45,7 +45,7 @@ public static class NativeOverlay
     private static IntPtr _fontBig, _fontSmall, _brushBg;
     private static float _scale = 1f;
 
-    private const int MinWidth = 190, Pad = 10, Stripe = 3, ColGap = 16, StatGap = 12;
+    private const int MinWidth = 170, Pad = 10, Stripe = 3, ColGap = 16, StatGap = 12;
 
     public static bool IsRunning => _hwnd != IntPtr.Zero;
 
@@ -400,16 +400,10 @@ public static class NativeOverlay
             for (var i = 0; i < v.Rows.Count; i++)
             {
                 var row = v.Rows[i];
-                var w = Math.Max(TextWidth(hdc, _fontLabel, row.Label.ToUpperInvariant(), out _), TextWidth(hdc, _fontStat, row.Value, out var vh));
-                if (row.Detail != null)
-                {
-                    w = Math.Max(w, TextWidth(hdc, _fontCaption, row.Detail, out _));
-                }
-                _statW[i] = w;
+                _statW[i] = Math.Max(TextWidth(hdc, _fontLabel, row.Label.ToUpperInvariant(), out _), TextWidth(hdc, _fontStat, row.Value, out var vh));
                 _statH = Math.Max(_statH, vh);
             }
             var statsW = _statW.Sum() + Math.Max(0, _statW.Length - 1) * S(StatGap);
-            var hasDetail = v.Rows.Any(r => r.Detail != null);
 
             // Never shrinks: the overlay keeps the same size between a match in progress and the end of the match.
             var contentW = Math.Max(headerW, Math.Max(mainW, statsW));
@@ -418,7 +412,7 @@ public static class NativeOverlay
             var h = S(9) + _headerH + S(6) + _mainH + S(8);
             if (v.Rows.Count > 0)
             {
-                h += 1 + S(7) + _captionH + S(1) + _statH + (hasDetail ? _captionH : 0) + S(9);
+                h += 1 + S(7) + _captionH + S(1) + _statH + S(9);
             }
             _lockRect = new RECT { Left = w0 - S(Pad) - S(14), Top = S(4), Right = w0 - S(4), Bottom = S(9) + _headerH + S(4) };
             // Keep it fully on its screen: on the right half of the screen it grows to the left, and it is
@@ -553,11 +547,7 @@ public static class NativeOverlay
                 var colRight = i == v.Rows.Count - 1 ? right + S(4) : cx + _statW[i] + S(4);
                 Text(hdc, _fontLabel, muted, row.Label.ToUpperInvariant(), cx, y, colRight, y + _captionH);
                 var vy = y + _captionH + S(1);
-                Text(hdc, _fontStat, row.Treasure ? Rgb(196, 176, 255) : ink, row.Value, cx, vy, colRight, vy + _statH);
-                if (row.Detail != null)
-                {
-                    Text(hdc, _fontCaption, muted, row.Detail, cx, vy + _statH, colRight, vy + _statH + _captionH);
-                }
+                Text(hdc, _fontStat, row.Treasure ? Rgb(255, 128, 170) : ink, row.Value, cx, vy, colRight, vy + _statH);
                 cx += _statW[i] + gap;
             }
         }

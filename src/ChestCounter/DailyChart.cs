@@ -46,7 +46,7 @@ public sealed class DailyChart : Control
 
         using var fontValue = Theme.Text(9f, FontStyle.Bold);
         using var fontDay = Theme.Text(9f, FontStyle.Regular);
-        using var brushPast = new SolidBrush(Theme.Violet);
+        using var brushPast = new SolidBrush(Theme.Blue);
         using var brushToday = new SolidBrush(Theme.Cyan);
         using var brushEmpty = new SolidBrush(Theme.Line);
         using var brushValue = new SolidBrush(Theme.Ink);

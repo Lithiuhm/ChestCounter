@@ -339,7 +339,7 @@ public sealed class Tracker
         var treasures = matches.Sum(m => m.TreasureFinds.Count);
         if (treasures > 0)
         {
-            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write($", ★ {L.Count(treasures, "tesoro", "tesoros", "treasure", "treasures")}");
         }
         Console.ResetColor();
@@ -545,7 +545,7 @@ public sealed class Tracker
 
         foreach (var find in m.TreasureFinds)
         {
-            Console.ForegroundColor = find.FromGoldenChest ? ConsoleColor.Yellow : ConsoleColor.Magenta;
+            Console.ForegroundColor = find.FromGoldenChest ? ConsoleColor.Yellow : ConsoleColor.Cyan;
             Console.WriteLine($"   {(find.FromGoldenChest ? "★★" : "★")} {L.T("Tesoro obtenido: ", "Treasure obtained: ")}{find.DisplayName} ({Pretty.Obtained(find)})");
             if (!find.SourceIsChest)
             {

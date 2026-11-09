@@ -22,12 +22,13 @@ Contador de cofres lee las repeticiones (replays) que Fortnite guarda después d
 
 ## Novedades de la 2.0.11
 
-- **Overlay rediseñado y más compacto:** franja de color a la izquierda (dorada entre partidas, verde durante una partida), etiqueta **EN DIRECTO** en forma de pastilla y la partida anterior o la actual en su propio recuadro.
+- **Overlay rediseñado y más compacto:** franja de color a la izquierda (dorada entre partidas, verde durante una partida), etiqueta **EN DIRECTO** en forma de pastilla, la partida anterior o la actual en su propio recuadro y la **media de la sesión**.
 - **Overlay desactivado por defecto:** lo activas tú con el botón **Overlay** o con Ctrl+Mayús+O. El botón muestra un punto verde (activado) o rojo (desactivado).
 - **Overlay para OBS por URL:** mientras el contador está abierto, el overlay está en **http://localhost:7373/**, lista para una fuente de navegador (se copia desde **Ajustes**).
 - **Cofres de antes del contador:** en **Ajustes** puedes escribir un estimado de los cofres que abriste antes de usar la herramienta; se suma a tu total (no a medias ni récords).
 - **Versión visible:** en el título de la ventana y en **Ajustes**.
-- **Ajustes rediseñados:** todo en oscuro, con tarjetas redondeadas, interruptores y botones redondeados.
+- **Ajustes rediseñados** con el mismo estilo que la ventana principal: tarjetas redondeadas, interruptores y todo en oscuro.
+- **Nueva paleta:** cian para las acciones, azul en el gráfico y rosa para los tesoros.
 - **Solo español e inglés.**
 
 ## Novedades de la 2.0
@@ -81,7 +82,7 @@ Con esta opción activada, un pequeño proceso invisible se inicia con Windows y
 ## El overlay
 
 - **Cifras grandes**: tu **total** de cofres (dorado) y, en el recuadro, los cofres de la partida **anterior** (o de la **actual** mientras juegas).
-- **Sesión**: cofres desde que se abrió la herramienta, con el número de partidas y la media.
+- **Sesión**: cofres desde que se abrió la herramienta. **Media**: media de cofres por partida en esta sesión.
 - **Anterior** (solo durante una partida): cofres de tu partida anterior. **Tesoros**: tesoros encontrados hasta ahora.
 - Durante una partida aparece la etiqueta **EN PARTIDA** y el recuadro muestra "…" hasta que se pueden leer los cofres; entonces pasa a **EN DIRECTO** con los cofres de la partida actual.
 

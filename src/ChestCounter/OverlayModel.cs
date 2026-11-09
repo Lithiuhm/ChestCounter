@@ -19,15 +19,18 @@ public static class OverlayModel
         var rows = new List<OverlayRow>();
 
         // Sesión: cofres, y debajo "n partidas · media x" (partidas terminadas de esta sesión).
+        // (el detalle solo lo usa la ventana principal; el overlay muestra la media en su propia columna).
         string? sessionDetail = null;
+        var avgText = "—";
         if (session.Count > 0)
         {
             var avg = (double)session.Sum(m => m.ChestsOpened) / session.Count;
-            var avgText = Math.Round(avg, MidpointRounding.AwayFromZero).ToString("0", L.Culture);
+            avgText = Math.Round(avg, MidpointRounding.AwayFromZero).ToString("0", L.Culture);
             sessionDetail = $"{L.Count(session.Count, "partida", "partidas", "match", "matches")} · {L.T("media", "avg.")} {avgText}";
         }
         rows.Add(new OverlayRow(L.T("Sesión", "Session"),
             L.Count(session.Sum(m => m.ChestsOpened) + liveChests, "cofre", "cofres", "chest", "chests"), Detail: sessionDetail));
+        rows.Add(new OverlayRow(L.T("Media", "Avg."), avgText));
 
         var last = d.Matches.OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).FirstOrDefault();
         // Entre partidas el contador derecho ya muestra la última partida: la fila solo aparece durante una partida.
