@@ -27,10 +27,16 @@ public sealed class Tracker
         _config = config;
         _data = data;
 
-        // Antes de la versión 1.1, las partidas de otros cuentas se rechazaban ("autre joueur"): ahora tienen su propio perfil.
+        // Antes de la versión 1.1, las partidas de otras cuentas se rechazaban (valor antiguo "autre joueur"): ahora tienen su propio perfil.
         foreach (var key in _data.ProcessedFiles.Where(kv => kv.Value.StartsWith("autre joueur", StringComparison.Ordinal)).Select(kv => kv.Key).ToList())
         {
             _data.ProcessedFiles.Remove(key);
+        }
+
+        // Historial de versiones anteriores a la 2.0.9: nombres internos en francés -> nombres actuales.
+        if (_data.UpgradeNames())
+        {
+            try { _store.SaveData(_data); } catch { /* se guardará con el próximo cambio */ }
         }
     }
 
@@ -222,7 +228,7 @@ public sealed class Tracker
         {
             // Also drop a record left by an older version of the tool for this replay.
             _data.Matches.RemoveAll(m => m.SessionId == record.SessionId);
-            _data.ProcessedFiles[key] = "autre mode";
+            _data.ProcessedFiles[key] = "other mode";
             _store.SaveData(_data);
             return new Outcome(Skipped: L.T("no es una partida Battle Royale (creativo / otro modo)",
                 "not a Battle Royale match (Creative / other mode)"));

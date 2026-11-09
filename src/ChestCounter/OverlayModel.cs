@@ -30,7 +30,8 @@ public static class OverlayModel
             L.Count(session.Sum(m => m.ChestsOpened) + liveChests, "cofre", "cofres", "chest", "chests"), Detail: sessionDetail));
 
         var last = d.Matches.OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).FirstOrDefault();
-        if (last != null)
+        // Entre partidas el contador derecho ya muestra la última partida: la fila solo aparece durante una partida.
+        if (last != null && (live != null || inProgress))
         {
             rows.Add(new OverlayRow(L.T("Última", "Last"), L.Count(last.ChestsOpened, "cofre", "cofres", "chest", "chests")));
         }

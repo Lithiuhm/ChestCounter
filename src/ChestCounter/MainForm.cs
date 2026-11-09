@@ -45,7 +45,7 @@ public sealed class MainForm : Form
         _monitor = monitor;
         _store = store;
 
-        Text = L.T("Contador de cofres", "Chest Counter");
+        Text = L.T("Contador de cofres", "Chest Counter") + " v" + AppInfo.VersionText;
         AutoScaleMode = AutoScaleMode.Dpi;
         AutoScaleDimensions = new SizeF(96, 96);
         Font = Theme.Text();
@@ -209,6 +209,7 @@ public sealed class MainForm : Form
             : L.T("Histórico", "History");
         _statTreasures.Text = $"★ {L.N(st.Treasures)}";
         _overlayButton.Enabled = _monitor.OverlayEnabled;
+        _overlayButton.Indicator = _monitor.OverlayVisible ? Theme.Green : Theme.Red;
 
         if (st.LastMatch is { } lm)
         {

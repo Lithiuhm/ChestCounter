@@ -1,6 +1,6 @@
 <div align="center">
 
-[Español](README.md) · **English** · [Français](README.fr.md)
+[Español](README.md) · **English**
 
 # Fortnite Chest Counter
 
@@ -74,7 +74,9 @@ When this option is on, a tiny invisible process starts with Windows and checks 
 - **Last**: chests of your last match. **Treasures**: treasures found so far.
 - During a match, the badge **● MATCH IN PROGRESS** appears and the right counter shows "…" until the match ends.
 
-To see it over the game, set Fortnite to **Windowed Fullscreen** (*Settings → Video → Window Mode*): in exclusive fullscreen, Windows cannot draw anything on top of the game. Streaming? `overlay.html` is the same overlay with a transparent background, for an **OBS** browser source.
+To see it over the game, set Fortnite to **Windowed Fullscreen** (*Settings → Video → Window Mode*): in exclusive fullscreen, Windows cannot draw anything on top of the game. The overlay starts **turned off**: turn it on with the **Overlay** button (green dot = on, red = off) or with Ctrl+Shift+O.
+
+Streaming? While the counter is open, the same overlay is served at **http://localhost:7373/** (copy it from **Settings**). In OBS, add a **browser source** with that address: transparent background, updates by itself.
 
 ## Shortcuts
 
@@ -122,7 +124,7 @@ Everything is stored in `%APPDATA%\ChestCounter`:
 | File | Content |
 |---|---|
 | `report.html` | The report (opens in your browser). |
-| `overlay.html` | Transparent overlay page for OBS. |
+| `overlay.html` | File copy of the overlay (for OBS, prefer http://localhost:7373/). |
 | `matches.csv` | One line per match, for Excel or Google Sheets. |
 | `data.json` | Your full history. **Back it up** if you change PC. |
 | `config.json` | Profile, replays folder, overlay position and settings. |

@@ -97,6 +97,7 @@ public sealed class Monitor
             StartOverlay();
         }
         RestartWatcher();
+        ObsServer.Start(_config.ObsPort > 0 ? _config.ObsPort : ObsServer.DefaultPort, _store.ReportPath);
 
         new Thread(Loop) { IsBackground = true, Name = "Vigilancia" }.Start();
 
@@ -117,6 +118,7 @@ public sealed class Monitor
 
     public void Stop()
     {
+        ObsServer.Stop();
         _stop = true;
         _wake.Set();
         _watcher?.Dispose();
@@ -209,6 +211,9 @@ public sealed class Monitor
     /// <summary>El overlay siempre está disponible: el botón y Ctrl+Mayús+O lo muestran y ocultan.</summary>
     public bool OverlayEnabled => OperatingSystem.IsWindows();
 
+    /// <summary>True cuando el overlay está en pantalla (desactivado por defecto).</summary>
+    public bool OverlayVisible => OperatingSystem.IsWindows() && NativeOverlay.IsVisible;
+
     public void ToggleOverlay()
     {
         if (!OperatingSystem.IsWindows())
@@ -219,6 +224,11 @@ public sealed class Monitor
         {
             NativeOverlay.Toggle();
             return;
+        }
+        lock (_cfgGate)
+        {
+            _config.OverlayVisible = true;
+            SaveQuietly();
         }
         StartOverlay();
         RequestPublish();
@@ -312,6 +322,7 @@ public sealed class Monitor
         _shownName = shown?.Name;
         var view = OverlayModel.Build(Profiles.View(_data, _config), _tracker.LiveMatch, _tracker.IsLive, Profiles.InitialChests(_data, _config));
         ReportWriter.WriteOverlay(_store, view);
+        ObsServer.Update(view);
         if (OperatingSystem.IsWindows() && NativeOverlay.IsRunning)
         {
             NativeOverlay.Update(view);
@@ -491,6 +502,16 @@ public sealed class Monitor
                     _config.OverlayLocked = locked;
                     SaveQuietly();
                 }
+            },
+            _config.OverlayVisible,
+            visible =>
+            {
+                lock (_cfgGate)
+                {
+                    _config.OverlayVisible = visible;
+                    SaveQuietly();
+                }
+                RequestPublish(); // el botón de la ventana cambia de color
             });
     }
 

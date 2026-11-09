@@ -111,10 +111,40 @@ public sealed class SettingsForm : Form
                 : L.T("Un estimado: se suma al total de cofres.", "An estimate: added to the chest total."),
             8.5f, FontStyle.Regular, new Point(20, 200), new Size(340, 20), Theme.Muted);
 
-        AddLabel(L.T("Carpeta de replays", "Replays folder"), 9f, FontStyle.Regular, new Point(20, 230), new Size(340, 22));
-        _folder = new TextBox
+        AddLabel(L.T("Overlay para OBS (fuente de navegador)", "Overlay for OBS (browser source)"), 9f, FontStyle.Regular, new Point(20, 230), new Size(340, 22));
+        var obsUrl = ObsServer.Url;
+        var obs = new TextBox
         {
             Location = new Point(20, 254),
+            Size = new Size(270, 26),
+            ReadOnly = true,
+            BackColor = Theme.Panel,
+            ForeColor = Theme.Ink,
+            BorderStyle = BorderStyle.FixedSingle,
+            Text = obsUrl ?? L.T("No disponible (puerto ocupado)", "Not available (port in use)"),
+        };
+        Controls.Add(obs);
+        var copy = new Button { Text = L.T("Copiar", "Copy"), Location = new Point(296, 252), Size = new Size(64, 30), Enabled = obsUrl != null };
+        Theme.Style(copy);
+        copy.Click += (_, _) =>
+        {
+            try
+            {
+                Clipboard.SetText(obsUrl!);
+                copy.Text = L.T("¡Listo!", "Done!");
+            }
+            catch
+            {
+                obs.Focus();
+                obs.SelectAll();
+            }
+        };
+        Controls.Add(copy);
+
+        AddLabel(L.T("Carpeta de replays", "Replays folder"), 9f, FontStyle.Regular, new Point(20, 290), new Size(340, 22));
+        _folder = new TextBox
+        {
+            Location = new Point(20, 314),
             Size = new Size(270, 26),
             ReadOnly = true,
             BackColor = Theme.Panel,
@@ -123,16 +153,18 @@ public sealed class SettingsForm : Form
             Text = config.DemosFolder,
         };
         Controls.Add(_folder);
-        var browse = new Button { Text = L.T("Cambiar…", "Change…"), Location = new Point(296, 252), Size = new Size(64, 30) };
+        var browse = new Button { Text = L.T("Cambiar…", "Change…"), Location = new Point(296, 312), Size = new Size(64, 30) };
         Theme.Style(browse);
         browse.Click += (_, _) => ChooseFolder();
         Controls.Add(browse);
 
         AddLabel(L.T("Tus datos (historial, ajustes) se guardan en:", "Your data (history, settings) is saved in:"),
-            8.5f, FontStyle.Regular, new Point(20, 302), new Size(340, 20), Theme.Muted);
-        AddLabel(store.Folder, 8.5f, FontStyle.Regular, new Point(20, 322), new Size(340, 32), Theme.Muted);
+            8.5f, FontStyle.Regular, new Point(20, 362), new Size(340, 20), Theme.Muted);
+        AddLabel(store.Folder, 8.5f, FontStyle.Regular, new Point(20, 382), new Size(340, 32), Theme.Muted);
+        AddLabel(L.T($"Versión {AppInfo.VersionText}", $"Version {AppInfo.VersionText}"),
+            8.5f, FontStyle.Regular, new Point(20, 430), new Size(220, 20), Theme.Muted);
 
-        var close = new Button { Text = L.T("Cerrar", "Close"), Location = new Point(260, 364), Size = new Size(100, 30), DialogResult = DialogResult.OK };
+        var close = new Button { Text = L.T("Cerrar", "Close"), Location = new Point(260, 424), Size = new Size(100, 30), DialogResult = DialogResult.OK };
         Theme.Style(close);
         Controls.Add(close);
         AcceptButton = close;

@@ -352,41 +352,73 @@ public static class ReportWriter
         }
     }
 
-    public static string Overlay(OverlayView v)
+    private const string OverlayStyle = """
+        html,body{margin:0;background:transparent;color:#e6eaf2;font:500 16px/1.25 "Segoe UI",system-ui,sans-serif}
+        .box{position:relative;display:inline-block;min-width:230px;padding:10px 14px 10px 18px;border-radius:14px;overflow:hidden;
+          background:rgba(15,19,27,.9);border:1px solid #2a3344;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+        .box:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#ffb84d}
+        .box.live:before{background:#3ddc97}
+        .head{display:flex;align-items:center;justify-content:space-between;gap:16px;font:700 12px "Segoe UI",sans-serif;letter-spacing:.12em;color:#7a8496}
+        .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;background:#143a2c;color:#3ddc97;letter-spacing:.06em}
+        .pill:before{content:"";width:8px;height:8px;border-radius:50%;background:#3ddc97;animation:pulse 1.6s ease-in-out infinite}
+        @keyframes pulse{50%{opacity:.35}}
+        .main{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:6px 0 8px}
+        .big{display:block;font-size:34px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums}
+        .total .big{color:#ffb84d}
+        .cap{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;color:#7a8496;text-transform:uppercase}
+        .chip{min-width:84px;padding:5px 12px;border-radius:11px;background:#1a202d;text-align:center}
+        .chip.live .big,.chip.live .cap{color:#3ddc97}.chip.none .big{color:#505868}
+        .stats{display:flex;justify-content:space-between;gap:14px;border-top:1px solid #222938;padding-top:7px}
+        .stat .cap{font-size:10px}.stat b{display:block;font-size:16px;font-weight:700}
+        .stat.t b{color:#c4b0ff}.stat small{display:block;font-size:11px;font-weight:600;color:#7a8496}
+        """;
+
+    /// <summary>The overlay card (shared by overlay.html and the OBS page served by the tool).</summary>
+    public static string OverlayBox(OverlayView v)
     {
-        var rows = new StringBuilder();
+        var stats = new StringBuilder();
         foreach (var r in v.Rows)
         {
-            rows.Append($"<div class=\"row{(r.Treasure ? " t" : "")}\"><span>{H(r.Label)}</span><b>{H(r.Value)}{(r.Detail != null ? $" <small>{H(r.Detail)}</small>" : "")}</b></div>");
+            stats.Append($"<div class=\"stat{(r.Treasure ? " t" : "")}\"><span class=\"cap\">{H(r.Label)}</span><b>{H(r.Value)}</b>{(r.Detail != null ? $"<small>{H(r.Detail)}</small>" : "")}</div>");
         }
-        return $$"""
-            <!doctype html><html lang="{{L.Code}}"><head><meta charset="utf-8"><meta http-equiv="refresh" content="10">
-            <title>{{L.T("Overlay de cofres", "Chest overlay")}}</title>
-            <style>
-            html,body{margin:0;background:transparent;color:#e2e2e8;font:500 16px/1.3 "Segoe UI",system-ui,sans-serif}
-            .box{display:inline-block;min-width:260px;padding:14px 18px 12px;border-radius:16px;background:rgba(18,18,22,.86);border:1px solid #3a3a42;text-shadow:0 1px 3px rgba(0,0,0,.6)}
-            .head{display:flex;justify-content:space-between;gap:16px;font:700 12px "Segoe UI",sans-serif;letter-spacing:.08em;color:#9696a2}
-            .live{color:#60d680}
-            .counters{display:flex;align-items:stretch;gap:18px;margin:4px 0 10px}
-            .counters>div{display:flex;flex-direction:column}
-            .sep{width:1px;background:#2c2c34;margin:8px 0 2px}
-            .big{font-size:40px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
-            .total{color:#f2b84b}.cur{color:#6ee096}.none{color:#50505c}
-            .cap{font-size:11px;font-weight:600;color:#82828e}
-            .rows{border-top:1px solid #2c2c34;padding-top:8px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
-            .row{display:contents}.row span{font-size:13px;font-weight:600;color:#82828e}.row b{font-weight:500}
-            .row.t b{color:#c4a0ff}.row small{font-size:11px;font-weight:600;color:#82828e}
-            </style></head><body><div class="box">
-            <div class="head"><span>{{L.T("COFRES", "CHESTS")}}</span>{{(v.Badge != null ? $"<span class=\"live\">{H(v.Badge)}</span>" : "")}}</div>
-            <div class="counters">
-              <div><span class="big total">{{H(v.Total)}}</span><span class="cap">total</span></div>
-              <div class="sep"></div>
-              <div><span class="big {{(v.Current == null ? "none" : v.CurrentLive ? "cur" : "")}}">{{H(v.Current ?? "—")}}</span><span class="cap">{{H(v.CurrentCaption)}}</span></div>
+        var badge = v.Badge != null ? $"<span class=\"pill\">{H(v.Badge.TrimStart('●', ' '))}</span>" : "";
+        var chip = v.Current == null ? "none" : v.CurrentLive ? "live" : "";
+        return $"""
+            <div class="box{(v.CurrentLive ? " live" : "")}">
+            <div class="head"><span>{L.T("COFRES", "CHESTS")}</span>{badge}</div>
+            <div class="main">
+              <div class="total"><span class="big">{H(v.Total)}</span><span class="cap">total</span></div>
+              <div class="chip {chip}"><span class="big">{H(v.Current ?? "—")}</span><span class="cap">{H(v.CurrentCaption)}</span></div>
             </div>
-            <div class="rows">{{rows}}</div>
-            </div></body></html>
+            <div class="stats">{stats}</div>
+            </div>
             """;
     }
+
+    /// <summary>overlay.html (a file: reloads itself every 10 s).</summary>
+    public static string Overlay(OverlayView v) => $"""
+        <!doctype html><html lang="{L.Code}"><head><meta charset="utf-8"><meta http-equiv="refresh" content="10">
+        <title>{L.T("Overlay de cofres", "Chest overlay")}</title><style>{OverlayStyle}</style></head>
+        <body>{OverlayBox(v)}</body></html>
+        """;
+
+    /// <summary>OBS page served by the tool: fetches the card every 2 s and swaps it only when it changed (no flicker).</summary>
+    public static string OverlayLivePage(string box) => $$"""
+        <!doctype html><html lang="{{L.Code}}"><head><meta charset="utf-8">
+        <title>{{L.T("Overlay de cofres", "Chest overlay")}}</title><style>{{OverlayStyle}}</style></head>
+        <body><div id="o">{{box}}</div>
+        <script>
+        let last = document.getElementById("o").innerHTML;
+        setInterval(async () => {
+          try {
+            const r = await fetch("/view", { cache: "no-store" });
+            if (!r.ok) return;
+            const html = await r.text();
+            if (html !== last) { document.getElementById("o").innerHTML = html; last = html; }
+          } catch (e) { /* tool closed: keep the last figures */ }
+        }, 2000);
+        </script></body></html>
+        """;
 
     public static string Csv(TrackerData data)
     {

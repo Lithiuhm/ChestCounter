@@ -79,6 +79,23 @@ public sealed class PillButton : Button
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public int Radius { get; set; } = 12;
 
+    private Color? _indicator;
+
+    /// <summary>Punto de estado delante del texto y borde del mismo color (null = sin indicador).</summary>
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color? Indicator
+    {
+        get => _indicator;
+        set
+        {
+            if (_indicator != value)
+            {
+                _indicator = value;
+                Invalidate();
+            }
+        }
+    }
+
     protected override void OnMouseEnter(EventArgs e)
     {
         _hover = true;
@@ -107,7 +124,29 @@ public sealed class PillButton : Button
         using var path = Shape.Rounded(rect, Radius);
         using var fill = new SolidBrush(_hover ? HoverColor : BackColor);
         g.FillPath(fill, path);
-        TextRenderer.DrawText(g, Text, Font, ClientRectangle, ForeColor,
-            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
+        if (_indicator is not { } dot)
+        {
+            TextRenderer.DrawText(g, Text, Font, ClientRectangle, ForeColor,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
+            return;
+        }
+
+        // Borde fino del color del estado y un punto delante del texto (todo centrado).
+        using (var edge = new Pen(Color.FromArgb(150, dot), 1.2f))
+        using (var inner = Shape.Rounded(new RectangleF(1f, 1f, Width - 2, Height - 2), Radius))
+        {
+            g.DrawPath(edge, inner);
+        }
+        var flags = TextFormatFlags.SingleLine | TextFormatFlags.NoPadding;
+        var textSize = TextRenderer.MeasureText(g, Text, Font, Size, flags);
+        var d = Math.Max(6f, Font.Height * 0.45f);
+        var gap = d * 0.8f;
+        var left = (Width - (d + gap + textSize.Width)) / 2f;
+        using (var brush = new SolidBrush(dot))
+        {
+            g.FillEllipse(brush, left, (Height - d) / 2f, d, d);
+        }
+        var textRect = new Rectangle((int)(left + d + gap), 0, textSize.Width + 2, Height);
+        TextRenderer.DrawText(g, Text, Font, textRect, ForeColor, flags | TextFormatFlags.VerticalCenter);
     }
 }

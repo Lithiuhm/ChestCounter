@@ -34,7 +34,7 @@ public sealed class TreasureFind
     public string SourceLabel => SourceDestroyed ? $"{L.Name(SourceKind)} ({L.T("destruido", "destroyed")})" : L.Name(SourceKind);
     /// <summary>When it was obtained (replay seconds). Exact for golden chests, estimated otherwise.</summary>
     public float? ObtainedAtSeconds { get; set; }
-    /// <summary>Kind of container / interaction it came from (Coffre, Canon à butin...).</summary>
+    /// <summary>Kind of container / interaction it came from (Chest, Loot cannon...).</summary>
     public string SourceKind { get; set; } = "";
     public string SourceBlueprint { get; set; } = "";
     public bool SourceIsChest { get; set; } = true;
@@ -93,11 +93,17 @@ public sealed class Config
     /// <summary>Locked overlay = click-through, cannot be moved (Ctrl+Shift+L to toggle).</summary>
     public bool OverlayLocked { get; set; }
 
+    /// <summary>Overlay shown on screen. Off by default: the player turns it on with the Overlay button or Ctrl+Shift+O.</summary>
+    public bool OverlayVisible { get; set; }
+
     /// <summary>Count the chests of the match in progress (re-reads the replay being recorded).</summary>
     public bool LiveUpdate { get; set; } = true;
 
     /// <summary>Minimum delay between two readings of the replay in progress (seconds, 10 minimum).</summary>
     public int LiveIntervalSeconds { get; set; } = 30;
+
+    /// <summary>Port of the local OBS page (http://localhost:port/), served while the tool is open.</summary>
+    public int ObsPort { get; set; } = ObsServer.DefaultPort;
 
     /// <summary>
     /// Estimate of the chests opened before using the tool, per profile key ("" = no profile yet).
@@ -108,6 +114,64 @@ public sealed class Config
 
 public sealed class TrackerData
 {
+    /// <summary>
+    /// Converts the internal names written by versions before 2.0.9 (in French) to the current ones.
+    /// Returns true when something changed (the history must be saved).
+    /// </summary>
+    public bool UpgradeNames()
+    {
+        var changed = false;
+        string Up(string value)
+        {
+            var current = L.Upgrade(value);
+            changed |= !ReferenceEquals(current, value) && current != value;
+            return current;
+        }
+        void UpList(List<string> list)
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                list[i] = Up(list[i]);
+            }
+        }
+
+        foreach (var m in Matches)
+        {
+            if (m.NotTrackedOwner != null)
+            {
+                m.NotTrackedOwner = Up(m.NotTrackedOwner);
+            }
+            foreach (var c in m.Chests)
+            {
+                c.Kind = Up(c.Kind);
+                UpList(c.Items);
+                UpList(c.TreasureItems);
+            }
+            foreach (var f in m.TreasureFinds)
+            {
+                f.Item = Up(f.Item);
+                f.SourceKind = Up(f.SourceKind);
+                UpList(f.AlsoPossible);
+            }
+            if (m.OtherInteractions.Keys.Any(k => L.Upgrade(k) != k))
+            {
+                var merged = new Dictionary<string, int>();
+                foreach (var kv in m.OtherInteractions)
+                {
+                    var key = Up(kv.Key);
+                    merged[key] = merged.GetValueOrDefault(key) + kv.Value;
+                }
+                m.OtherInteractions = merged;
+            }
+        }
+        foreach (var key in ProcessedFiles.Where(kv => kv.Value == "autre mode").Select(kv => kv.Key).ToList())
+        {
+            ProcessedFiles[key] = "other mode";
+            changed = true;
+        }
+        return changed;
+    }
+
     public int Version { get; set; } = 1;
     public int AnalyzerVersion { get; set; } = 1;
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
@@ -220,7 +284,7 @@ public sealed class Store
         MigrateFileNames();
     }
 
-    /// <summary>Versions before 1.1 used French file names: keep the user's treasure names, drop the old generated pages.</summary>
+    /// <summary>Versions before 1.1 used other file names: keep the user's treasure names, drop the old generated pages.</summary>
     private void MigrateFileNames()
     {
         try

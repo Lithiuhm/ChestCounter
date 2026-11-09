@@ -14,7 +14,7 @@ public sealed record OverlayRow(string Label, string Value, bool Treasure = fals
 
 /// <param name="Current">Right counter (match in progress, or last match); null = "—".</param>
 /// <param name="CurrentLive">Right counter is the match in progress (green).</param>
-/// <param name="Badge">Header badge ("● EN DIRECT" / "● LIVE", "● PARTIE EN COURS" / "● MATCH IN PROGRESS") or null.</param>
+/// <param name="Badge">Header badge ("● EN DIRECTO" / "● LIVE", "● EN PARTIDA" / "● MATCH IN PROGRESS") or null.</param>
 public sealed record OverlayView(string Total, string? Current, string CurrentCaption, bool CurrentLive, string? Badge, IReadOnlyList<OverlayRow> Rows);
 
 [SupportedOSPlatform("windows")]
@@ -25,13 +25,17 @@ public static class NativeOverlay
     private static volatile OverlayView _view = new("0", null, OverlayModel.LastMatchCaption, false, null, Array.Empty<OverlayRow>());
 
     // Layout (computed by Relayout, used by Paint; both on the overlay thread).
-    private static int _headerH, _bigH, _captionH, _rowH, _col1W, _col2W, _labelW;
+    private static int _headerH, _bigH, _captionH, _statH, _col1W, _chipW, _chipH, _mainH, _badgeW;
+    private static int[] _statW = Array.Empty<int>();
     private static IntPtr _fontHeader, _fontCaption, _fontLabel;
-    private static IntPtr _brushBorder, _brushLine;
+    private static IntPtr _brushBorder, _brushLine, _brushChip, _brushGold, _brushGreen, _brushPill;
+    private static IntPtr _fontStat;
     private static string Header => L.T("COFRES", "CHESTS");
     private const string CaptionTotal = "total";
     private static Action<int, int>? _onMoved;
     private static Action<bool>? _onLockChanged;
+    private static Action<bool>? _onVisibleChanged;
+    private static volatile bool _visible;
     private static volatile bool _locked;
     private static bool _offscreen;
     private static int _stableW;
@@ -41,7 +45,7 @@ public static class NativeOverlay
     private static IntPtr _fontBig, _fontSmall, _brushBg;
     private static float _scale = 1f;
 
-    private const int MinWidth = 200, Pad = 12, ColGap = 28;
+    private const int MinWidth = 190, Pad = 10, Stripe = 3, ColGap = 16, StatGap = 12;
 
     public static bool IsRunning => _hwnd != IntPtr.Zero;
 
@@ -54,12 +58,19 @@ public static class NativeOverlay
     /// <summary>Locked = click-through: the mouse goes through the overlay and it cannot be moved.</summary>
     public static bool IsLocked => _locked;
 
-    public static void Start(int? x, int? y, bool locked, Action<int, int> onMoved, Action<bool> onLockChanged)
+    /// <summary>True when the overlay is on screen.</summary>
+    public static bool IsVisible => _hwnd != IntPtr.Zero && _visible;
+
+    public static void Start(int? x, int? y, bool locked, Action<int, int> onMoved, Action<bool> onLockChanged,
+        bool visible = true, Action<bool>? onVisibleChanged = null)
     {
         if (_thread != null)
         {
             return;
         }
+
+        _visible = visible;
+        _onVisibleChanged = onVisibleChanged;
 
         _onMoved = onMoved;
         _offscreen = x <= -10000; // --overlay-preview: never brought back on screen
@@ -152,6 +163,7 @@ public static class NativeOverlay
         thread.Join(TimeSpan.FromSeconds(2));
         _thread = null;
         _hwnd = IntPtr.Zero;
+        _visible = false;
         HotkeyRegistered = false;
         LockHotkeyRegistered = false;
     }
@@ -166,14 +178,19 @@ public static class NativeOverlay
 
         int S(int v) => (int)Math.Round(v * _scale);
 
-        _fontBig = CreateFontW(-S(30), 0, 0, 0, 800, 0, 0, 0, 1, 0, 0, 5, 0, "Segoe UI");
+        _fontBig = CreateFontW(-S(26), 0, 0, 0, 800, 0, 0, 0, 1, 0, 0, 5, 0, "Segoe UI");
         _fontSmall = CreateFontW(-S(11), 0, 0, 0, 500, 0, 0, 0, 1, 0, 0, 5, 0, "Segoe UI");
         _fontHeader = CreateFontW(-S(10), 0, 0, 0, 700, 0, 0, 0, 1, 0, 0, 5, 0, "Segoe UI");
-        _fontCaption = CreateFontW(-S(9), 0, 0, 0, 600, 0, 0, 0, 1, 0, 0, 5, 0, "Segoe UI");
-        _fontLabel = CreateFontW(-S(11), 0, 0, 0, 600, 0, 0, 0, 1, 0, 0, 5, 0, "Segoe UI");
-        _brushBg = CreateSolidBrush(Rgb(18, 18, 22));
-        _brushBorder = CreateSolidBrush(Rgb(58, 58, 66));
-        _brushLine = CreateSolidBrush(Rgb(44, 44, 52));
+        _fontCaption = CreateFontW(-S(8), 0, 0, 0, 600, 0, 0, 0, 1, 0, 0, 5, 0, "Segoe UI");
+        _fontLabel = CreateFontW(-S(8), 0, 0, 0, 700, 0, 0, 0, 1, 0, 0, 5, 0, "Segoe UI");
+        _fontStat = CreateFontW(-S(12), 0, 0, 0, 700, 0, 0, 0, 1, 0, 0, 5, 0, "Segoe UI");
+        _brushBg = CreateSolidBrush(Rgb(15, 19, 27));
+        _brushBorder = CreateSolidBrush(Rgb(42, 51, 68));
+        _brushLine = CreateSolidBrush(Rgb(34, 41, 56));
+        _brushChip = CreateSolidBrush(Rgb(26, 32, 45));
+        _brushGold = CreateSolidBrush(Rgb(255, 184, 77));
+        _brushGreen = CreateSolidBrush(Rgb(61, 220, 151));
+        _brushPill = CreateSolidBrush(Rgb(20, 58, 44));
         _fontIcon = CreateFontW(-S(14), 0, 0, 0, 400, 0, 0, 0, 1, 0, 0, 5, 0, "Segoe MDL2 Assets");
 
         var hInstance = GetModuleHandleW(null);
@@ -208,7 +225,10 @@ public static class NativeOverlay
 
         ApplyLock(_hwnd, _locked, notify: false);
         Relayout(_hwnd);
-        ShowWindow(_hwnd, SW_SHOWNOACTIVATE);
+        if (_visible)
+        {
+            ShowWindow(_hwnd, SW_SHOWNOACTIVATE);
+        }
         // No timer at all: the thread sleeps in GetMessage and only wakes up when the counter changes,
         // when you drag/hide the window or press the shortcut.
         // Global shortcut, works even when the game has the focus.
@@ -325,6 +345,8 @@ public static class NativeOverlay
 
     private static void SetVisible(IntPtr hwnd, bool visible)
     {
+        _visible = visible;
+        _onVisibleChanged?.Invoke(visible);
         if (visible)
         {
             ShowWindow(hwnd, SW_SHOWNOACTIVATE);
@@ -348,6 +370,9 @@ public static class NativeOverlay
         return r.Right - r.Left;
     }
 
+    /// <summary>Badge text without its leading dot (the pill already shows the state).</summary>
+    private static string BadgeText(string badge) => badge.TrimStart('●', ' ');
+
     /// <summary>Measures the text and resizes the window (and its rounded region) to fit it.</summary>
     private static void Relayout(IntPtr hwnd)
     {
@@ -356,36 +381,46 @@ public static class NativeOverlay
         var hdc = GetDC(hwnd);
         try
         {
-            // Header: "COFFRES" ... "● EN DIRECT" [lock]
-            var headerW = TextWidth(hdc, _fontHeader, Header, out _headerH) + S(16) + (v.Badge != null ? TextWidth(hdc, _fontHeader, v.Badge, out _) : 0) + S(30);
+            // Header: "COFRES" ... [● EN DIRECTO] [lock]
+            _badgeW = v.Badge != null ? TextWidth(hdc, _fontHeader, BadgeText(v.Badge), out _) + S(22) : 0;
+            var headerW = TextWidth(hdc, _fontHeader, Header, out _headerH) + S(10) + _badgeW + S(24);
 
-            // Two counters side by side.
-            _col1W = Math.Max(TextWidth(hdc, _fontBig, v.Total, out _bigH), TextWidth(hdc, _fontCaption, CaptionTotal, out _captionH));
-            _col2W = Math.Max(TextWidth(hdc, _fontBig, v.Current ?? "—", out _), Math.Max(TextWidth(hdc, _fontCaption, v.CurrentCaption, out _), TextWidth(hdc, _fontCaption, OverlayModel.LastMatchCaption, out _)));
-            var countersW = _col1W + S(ColGap) + _col2W;
+            // Big total on the left, current / last match in a rounded chip on the right.
+            _col1W = Math.Max(TextWidth(hdc, _fontBig, v.Total, out _bigH), TextWidth(hdc, _fontCaption, CaptionTotal.ToUpperInvariant(), out _captionH));
+            var currentW = Math.Max(TextWidth(hdc, _fontBig, v.Current ?? "—", out _),
+                Math.Max(TextWidth(hdc, _fontCaption, v.CurrentCaption.ToUpperInvariant(), out _), TextWidth(hdc, _fontCaption, OverlayModel.LastMatchCaption.ToUpperInvariant(), out _)));
+            _chipW = currentW + 2 * S(10);
+            _chipH = _bigH + _captionH + S(8);
+            _mainH = Math.Max(_bigH + _captionH, _chipH);
+            var mainW = _col1W + S(ColGap) + _chipW;
 
-            // Detail rows: grey label column + value.
-            _labelW = 0;
-            var valueW = 0;
-            _rowH = 0;
-            foreach (var row in v.Rows)
+            // Stats strip: one column per row (label / value / detail).
+            _statW = new int[v.Rows.Count];
+            _statH = 0;
+            for (var i = 0; i < v.Rows.Count; i++)
             {
-                _labelW = Math.Max(_labelW, TextWidth(hdc, _fontLabel, row.Label, out var lh));
-                valueW = Math.Max(valueW, TextWidth(hdc, _fontSmall, row.Value, out var vh)
-                    + (row.Detail != null ? S(6) + TextWidth(hdc, _fontCaption, row.Detail, out _) : 0));
-                _rowH = Math.Max(_rowH, Math.Max(lh, vh));
+                var row = v.Rows[i];
+                var w = Math.Max(TextWidth(hdc, _fontLabel, row.Label.ToUpperInvariant(), out _), TextWidth(hdc, _fontStat, row.Value, out var vh));
+                if (row.Detail != null)
+                {
+                    w = Math.Max(w, TextWidth(hdc, _fontCaption, row.Detail, out _));
+                }
+                _statW[i] = w;
+                _statH = Math.Max(_statH, vh);
             }
-            var rowsW = v.Rows.Count > 0 ? _labelW + S(12) + valueW : 0;
+            var statsW = _statW.Sum() + Math.Max(0, _statW.Length - 1) * S(StatGap);
+            var hasDetail = v.Rows.Any(r => r.Detail != null);
 
             // Never shrinks: the overlay keeps the same size between a match in progress and the end of the match.
-            var w = Math.Max(_stableW, Math.Max(S(MinWidth), Math.Max(headerW, Math.Max(countersW, rowsW)) + 2 * S(Pad)));
-            _stableW = w;
-            var h = S(12) + _headerH + S(6) + _bigH + _captionH + S(12);
+            var contentW = Math.Max(headerW, Math.Max(mainW, statsW));
+            var w0 = Math.Max(_stableW, Math.Max(S(MinWidth), contentW + 2 * S(Pad) + S(Stripe)));
+            _stableW = w0;
+            var h = S(9) + _headerH + S(6) + _mainH + S(8);
             if (v.Rows.Count > 0)
             {
-                h += 1 + S(10) + v.Rows.Count * (_rowH + S(4)) + S(4);
+                h += 1 + S(7) + _captionH + S(1) + _statH + (hasDetail ? _captionH : 0) + S(9);
             }
-            _lockRect = new RECT { Left = w - S(Pad) - S(18), Top = S(6), Right = w - S(6), Bottom = S(12) + _headerH + S(6) };
+            _lockRect = new RECT { Left = w0 - S(Pad) - S(14), Top = S(4), Right = w0 - S(4), Bottom = S(9) + _headerH + S(4) };
             // Keep it fully on its screen: on the right half of the screen it grows to the left, and it is
             // pushed back inside when it would overflow (a wider overlay used to be cut by the screen edge).
             GetWindowRect(hwnd, out var cur);
@@ -396,13 +431,13 @@ public static class NativeOverlay
                 var work = mi.rcWork;
                 if (cur.Right - cur.Left > 0 && (cur.Left + cur.Right) / 2 > (work.Left + work.Right) / 2)
                 {
-                    nx = cur.Right - w; // anchored on the right edge
+                    nx = cur.Right - w0; // anchored on the right edge
                 }
-                nx = Math.Max(work.Left, Math.Min(nx, work.Right - w));
+                nx = Math.Max(work.Left, Math.Min(nx, work.Right - w0));
                 ny = Math.Max(work.Top, Math.Min(ny, work.Bottom - h));
             }
-            SetWindowPos(hwnd, HWND_TOPMOST, nx, ny, w, h, SWP_NOACTIVATE);
-            SetWindowRgn(hwnd, CreateRoundRectRgn(0, 0, w + 1, h + 1, S(14), S(14)), true); // window owns the region
+            SetWindowPos(hwnd, HWND_TOPMOST, nx, ny, w0, h, SWP_NOACTIVATE);
+            SetWindowRgn(hwnd, CreateRoundRectRgn(0, 0, w0 + 1, h + 1, S(16), S(16)), true); // window owns the region
             if (nx != cur.Left || ny != cur.Top)
             {
                 _onMoved?.Invoke(nx, ny);
@@ -424,6 +459,13 @@ public static class NativeOverlay
         DrawTextW(hdc, text, -1, ref r, DT_SINGLELINE | DT_NOPREFIX | align);
     }
 
+    private static void RoundFill(IntPtr hdc, IntPtr brush, int left, int top, int right, int bottom, int radius)
+    {
+        var rgn = CreateRoundRectRgn(left, top, right + 1, bottom + 1, radius, radius);
+        FillRgn(hdc, rgn, brush);
+        DeleteObject(rgn);
+    }
+
     private static void Paint(IntPtr hwnd)
     {
         var hdc = BeginPaint(hwnd, out var ps);
@@ -440,62 +482,83 @@ public static class NativeOverlay
     private static void PaintTo(IntPtr hwnd, IntPtr hdc)
     {
         var v = _view;
+        GetClientRect(hwnd, out var rc);
+        FillRect(hdc, ref rc, _brushBg);
+        SetBkMode(hdc, TRANSPARENT);
+
+        int S(int n) => (int)Math.Round(n * _scale);
+        var muted = Rgb(122, 132, 150);
+        var ink = Rgb(230, 234, 242);
+        var gold = Rgb(255, 184, 77);
+        var green = Rgb(61, 220, 151);
+
+        // Accent stripe on the left edge (gold, green during a match), clipped by the rounded window region.
+        var stripe = new RECT { Left = 0, Top = 0, Right = S(Stripe), Bottom = rc.Bottom };
+        FillRect(hdc, ref stripe, v.CurrentLive ? _brushGreen : _brushGold);
+
+        // Thin border following the rounded shape.
+        var border = CreateRoundRectRgn(0, 0, rc.Right + 1, rc.Bottom + 1, S(16), S(16));
+        FrameRgn(hdc, border, _brushBorder, 1, 1);
+        DeleteObject(border);
+
+        var x = S(Stripe) + S(Pad);
+        var right = rc.Right - S(Pad);
+        var y = S(9);
+
+        // Header: title, state pill, lock button (Segoe MDL2 Assets: E785 = open padlock, E72E = closed padlock).
+        Text(hdc, _fontHeader, muted, Header, x, y, right, y + _headerH);
+        if (v.Badge != null)
         {
-            GetClientRect(hwnd, out var rc);
-            FillRect(hdc, ref rc, _brushBg);
-            SetBkMode(hdc, TRANSPARENT);
+            var pr = _lockRect.Left - S(6);
+            var pl = pr - _badgeW;
+            RoundFill(hdc, _brushPill, pl, y - S(3), pr, y + _headerH + S(3), _headerH + S(6));
+            var dot = S(7);
+            var dy = y + (_headerH - dot) / 2;
+            var dotRgn = CreateEllipticRgn(pl + S(7), dy, pl + S(7) + dot + 1, dy + dot + 1);
+            FillRgn(hdc, dotRgn, _brushGreen);
+            DeleteObject(dotRgn);
+            Text(hdc, _fontHeader, green, BadgeText(v.Badge), pl + S(17), y, pr, y + _headerH);
+        }
+        SelectObject(hdc, _fontIcon);
+        SetTextColor(hdc, _locked ? Rgb(86, 96, 114) : Rgb(200, 206, 218));
+        var lr = _lockRect;
+        DrawTextW(hdc, _locked ? "\uE72E" : "\uE785", -1, ref lr, DT_SINGLELINE | DT_CENTER | DT_VCENTER | DT_NOPREFIX);
+        y += _headerH + S(6);
 
-            int S(int n) => (int)Math.Round(n * _scale);
-            var x = S(Pad);
-            var right = rc.Right - S(Pad);
-            var y = S(12);
+        // Total (left) and current / last match chip (right).
+        var ty = y + (_mainH - _bigH - _captionH) / 2;
+        Text(hdc, _fontBig, gold, v.Total, x - S(1), ty, x + _col1W + S(4), ty + _bigH);
+        Text(hdc, _fontCaption, muted, CaptionTotal.ToUpperInvariant(), x, ty + _bigH, x + _col1W + S(4), ty + _bigH + _captionH);
 
-            // Thin border following the rounded shape.
-            var border = CreateRoundRectRgn(0, 0, rc.Right + 1, rc.Bottom + 1, S(14), S(14));
-            FrameRgn(hdc, border, _brushBorder, 1, 1);
-            DeleteObject(border);
+        var cl = right - _chipW;
+        var ct = y + (_mainH - _chipH) / 2;
+        RoundFill(hdc, _brushChip, cl, ct, right, ct + _chipH, S(10));
+        var currentColor = v.Current == null ? Rgb(80, 88, 104) : v.CurrentLive ? green : ink;
+        Text(hdc, _fontBig, currentColor, v.Current ?? "—", cl, ct + S(3), right, ct + S(3) + _bigH, DT_CENTER);
+        Text(hdc, _fontCaption, v.CurrentLive ? green : muted, v.CurrentCaption.ToUpperInvariant(), cl, ct + S(3) + _bigH, right, ct + S(3) + _bigH + _captionH, DT_CENTER);
+        y += _mainH + S(8);
 
-            // Header
-            Text(hdc, _fontHeader, Rgb(150, 150, 162), Header, x, y, right, y + _headerH);
-            if (v.Badge != null)
+        // Stats strip: columns spread over the whole width.
+        if (v.Rows.Count > 0)
+        {
+            var line = new RECT { Left = x, Top = y, Right = right, Bottom = y + 1 };
+            FillRect(hdc, ref line, _brushLine);
+            y += 1 + S(7);
+            var free = right - x - _statW.Sum();
+            var gap = v.Rows.Count > 1 ? free / (v.Rows.Count - 1) : 0;
+            var cx = x;
+            for (var i = 0; i < v.Rows.Count; i++)
             {
-                Text(hdc, _fontHeader, Rgb(96, 214, 128), v.Badge, x, y, _lockRect.Left - S(6), y + _headerH, DT_RIGHT);
-            }
-            // Lock button (Segoe MDL2 Assets: E785 = open padlock, E72E = closed padlock).
-            SelectObject(hdc, _fontIcon);
-            SetTextColor(hdc, _locked ? Rgb(96, 96, 106) : Rgb(200, 200, 208));
-            var lr = _lockRect;
-            DrawTextW(hdc, _locked ? "" : "", -1, ref lr, DT_SINGLELINE | DT_CENTER | DT_VCENTER | DT_NOPREFIX);
-            y += _headerH + S(6);
-
-            // Counters: total | match in progress
-            var x2 = x + _col1W + S(ColGap);
-            Text(hdc, _fontBig, Rgb(242, 184, 75), v.Total, x - S(1), y, x + _col1W + S(4), y + _bigH);
-            Text(hdc, _fontBig, v.Current == null ? Rgb(80, 80, 92) : v.CurrentLive ? Rgb(110, 224, 150) : Rgb(226, 226, 232), v.Current ?? "—", x2 - S(1), y, right + S(4), y + _bigH);
-            var sep = new RECT { Left = x + _col1W + S(ColGap) / 2, Top = y + S(8), Right = x + _col1W + S(ColGap) / 2 + 1, Bottom = y + _bigH + _captionH };
-            FillRect(hdc, ref sep, _brushLine);
-            y += _bigH;
-            Text(hdc, _fontCaption, Rgb(130, 130, 142), CaptionTotal, x, y, x + _col1W + S(4), y + _captionH);
-            Text(hdc, _fontCaption, Rgb(130, 130, 142), v.CurrentCaption, x2, y, right + S(4), y + _captionH);
-            y += _captionH + S(12);
-
-            if (v.Rows.Count > 0)
-            {
-                var line = new RECT { Left = x, Top = y, Right = right, Bottom = y + 1 };
-                FillRect(hdc, ref line, _brushLine);
-                y += 1 + S(10);
-                foreach (var row in v.Rows)
+                var row = v.Rows[i];
+                var colRight = i == v.Rows.Count - 1 ? right + S(4) : cx + _statW[i] + S(4);
+                Text(hdc, _fontLabel, muted, row.Label.ToUpperInvariant(), cx, y, colRight, y + _captionH);
+                var vy = y + _captionH + S(1);
+                Text(hdc, _fontStat, row.Treasure ? Rgb(196, 176, 255) : ink, row.Value, cx, vy, colRight, vy + _statH);
+                if (row.Detail != null)
                 {
-                    Text(hdc, _fontLabel, Rgb(130, 130, 142), row.Label, x, y, x + _labelW, y + _rowH);
-                    var vx = x + _labelW + S(12);
-                    Text(hdc, _fontSmall, row.Treasure ? Rgb(196, 160, 255) : Rgb(226, 226, 232), row.Value, vx, y, right + S(4), y + _rowH);
-                    if (row.Detail != null)
-                    {
-                        var dx = vx + TextWidth(hdc, _fontSmall, row.Value, out _) + S(6);
-                        Text(hdc, _fontCaption, Rgb(130, 130, 142), row.Detail, dx, y, right + S(4), y + _rowH - S(2), DT_BOTTOM);
-                    }
-                    y += _rowH + S(4);
+                    Text(hdc, _fontCaption, muted, row.Detail, cx, vy + _statH, colRight, vy + _statH + _captionH);
                 }
+                cx += _statW[i] + gap;
             }
         }
     }
@@ -619,6 +682,8 @@ public static class NativeOverlay
     [DllImport("gdi32.dll")] private static extern bool DeleteDC(IntPtr hdc);
     [DllImport("gdi32.dll")] private static extern int GetDIBits(IntPtr hdc, IntPtr bmp, uint start, uint lines, byte[] bits, ref BITMAPINFOHEADER bi, uint usage);
     [DllImport("gdi32.dll")] private static extern bool FrameRgn(IntPtr hdc, IntPtr rgn, IntPtr brush, int w, int h);
+    [DllImport("gdi32.dll")] private static extern bool FillRgn(IntPtr hdc, IntPtr rgn, IntPtr brush);
+    [DllImport("gdi32.dll")] private static extern IntPtr CreateEllipticRgn(int x1, int y1, int x2, int y2);
     [DllImport("gdi32.dll")] private static extern bool DeleteObject(IntPtr obj);
     [DllImport("gdi32.dll")] private static extern int SetBkMode(IntPtr hdc, int mode);
     [DllImport("gdi32.dll")] private static extern uint SetTextColor(IntPtr hdc, uint color);

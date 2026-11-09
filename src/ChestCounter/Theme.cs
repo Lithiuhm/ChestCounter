@@ -22,10 +22,12 @@ internal static class Theme
     public static readonly Color Mint = Color.FromArgb(61, 220, 151);    // en directo
     public static readonly Color Violet = Color.FromArgb(124, 92, 255);  // acciones principales
     public static readonly Color VioletSoft = Color.FromArgb(196, 176, 255);
+    public static readonly Color Coral = Color.FromArgb(255, 99, 99);    // desactivado
 
     // Nombres usados por otras ventanas (mismo significado que antes).
     public static Color Gold => Amber;
     public static Color Green => Mint;
+    public static Color Red => Coral;
     public static Color Lilac => VioletSoft;
 
     public static Font Text(float size = 9f, FontStyle style = FontStyle.Regular) => new("Segoe UI", size, style);

@@ -143,7 +143,7 @@ if (previewPath != null)
         return 1;
     }
     NativeOverlay.Start(-20000, -20000, false, (_, _) => { }, _ => { });
-    var fakeLive = new MatchRecord { ChestsOpened = 12, TreasureFinds = { new TreasureFind { Item = "Trésor" } } };
+    var fakeLive = new MatchRecord { ChestsOpened = 12, TreasureFinds = { new TreasureFind { Item = "Treasure" } } };
     foreach (var (suffix, live, inProgress) in new[] { ("-espera", (MatchRecord?)null, false), ("-en-curso", null, true), ("-en-vivo", fakeLive, true) })
     {
         NativeOverlay.Update(OverlayModel.Build(previewData, live, inProgress, Profiles.InitialChests(config, previewData.Matches.Select(Profiles.Key).FirstOrDefault())));

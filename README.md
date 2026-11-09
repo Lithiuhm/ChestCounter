@@ -1,6 +1,6 @@
 <div align="center">
 
-**Español** · [English](README.en.md) · [Français](README.fr.md)
+**Español** · [English](README.en.md)
 
 # Contador de cofres de Fortnite
 
@@ -75,7 +75,9 @@ Con esta opción activada, un pequeño proceso invisible se inicia con Windows y
 - **Última**: cofres de tu última partida. **Tesoros**: tesoros encontrados hasta ahora.
 - Durante una partida aparece la etiqueta **● EN PARTIDA** y el contador de la derecha muestra "…" hasta que termina.
 
-Para verlo sobre el juego, pon Fortnite en **Pantalla completa en ventana** (*Ajustes → Vídeo → Modo de ventana*): en pantalla completa exclusiva, Windows no puede dibujar nada encima del juego. ¿Transmites en directo? `overlay.html` es el mismo overlay con fondo transparente, para una fuente de navegador en **OBS**.
+Para verlo sobre el juego, pon Fortnite en **Pantalla completa en ventana** (*Ajustes → Vídeo → Modo de ventana*): en pantalla completa exclusiva, Windows no puede dibujar nada encima del juego. El overlay viene **desactivado**: actívalo con el botón **Overlay** (punto verde = activado, rojo = desactivado) o con Ctrl+Mayús+O.
+
+¿Transmites en directo? Mientras el contador está abierto, el mismo overlay está en **http://localhost:7373/** (cópialo desde **Ajustes**). En OBS, añade una **fuente de navegador** con esa dirección: tiene fondo transparente y se actualiza sola.
 
 ## Atajos
 
@@ -123,7 +125,7 @@ Todo se guarda en `%APPDATA%\ChestCounter`:
 | Archivo | Contenido |
 |---|---|
 | `report.html` | El informe (se abre en tu navegador). |
-| `overlay.html` | Página del overlay transparente para OBS. |
+| `overlay.html` | Copia del overlay en un archivo (para OBS es mejor la dirección http://localhost:7373/). |
 | `matches.csv` | Una línea por partida, para Excel o Google Sheets. |
 | `data.json` | Tu historial completo. **Haz copia de seguridad** si cambias de PC. |
 | `config.json` | Perfil, carpeta de repeticiones, posición del overlay y ajustes. |

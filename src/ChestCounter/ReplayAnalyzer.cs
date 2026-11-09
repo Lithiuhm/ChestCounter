@@ -580,7 +580,7 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
             {
                 foreach (var se in _searches.Where(x => x.Time >= ex.Value - 6 && x.Time <= ex.Value + 3).OrderBy(x => x.Time))
                 {
-                    Console.Error.WriteLine($"DBG nearhandler {se.Time,7:F1}s (Δ{se.Time - ex.Value:+0.0;-0.0}) {CleanName(se.Label)}{(se.Destroyed ? " DÉTRUIT" : "")} by {(se.SearcherPawn is uint sp ? NameOfPawn(sp) : "?")}{(se.SearcherPawn is uint tp2 && targetPawns.Contains(tp2) ? " (MOI)" : "")}");
+                    Console.Error.WriteLine($"DBG nearhandler {se.Time,7:F1}s (Δ{se.Time - ex.Value:+0.0;-0.0}) {CleanName(se.Label)}{(se.Destroyed ? " DESTROYED" : "")} by {(se.SearcherPawn is uint sp ? NameOfPawn(sp) : "?")}{(se.SearcherPawn is uint tp2 && targetPawns.Contains(tp2) ? " (ME)" : "")}");
                 }
             }
             foreach (var pz in _prizes)
@@ -593,7 +593,7 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
             }
             foreach (var i in interactions)
             {
-                Console.Error.WriteLine($"DBG interact {i.Time,7:F1}s {i.Kind} {i.Label}{(i.Destroyed ? " (DÉTRUIT)" : "")}");
+                Console.Error.WriteLine($"DBG interact {i.Time,7:F1}s {i.Kind} {i.Label}{(i.Destroyed ? " (DESTROYED)" : "")}");
             }
         }
 
@@ -604,7 +604,7 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
         foreach (var pz in _prizes.Where(p => p.Pawn is uint pawn && targetPawns.Contains(pawn)))
         {
             var label = CleanName(pz.Container);
-            var kind = string.IsNullOrEmpty(label) ? "inconnu" : ChestKinds.Classify(label);
+            var kind = string.IsNullOrEmpty(label) ? "unknown" : ChestKinds.Classify(label);
             finds.Add(new TreasureFind
             {
                 Item = TreasureNames.Friendly(pz.PrizeId),
@@ -691,7 +691,7 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
 
                 finds.Add(new TreasureFind
                 {
-                    Item = itemName ?? TreasureNames.UnknownGizmoFr,
+                    Item = itemName ?? TreasureNames.UnknownGizmo,
 
                     RawItem = item ?? "GA_TreasureHandler",
                     PrizeId = unknownKey,
@@ -726,7 +726,7 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
             PlayerName = target?.PlayerName,
             EpicId = target?.EpicId,
             TrackedByUsername = matchedByName,
-            NotTrackedOwner = notTracked ? (recorderPlayer?.PlayerName ?? "inconnu") : null,
+            NotTrackedOwner = notTracked ? (recorderPlayer?.PlayerName ?? "unknown") : null,
             Placement = placement,
             TotalPlayers = (int?)replay.TeamStats?.TotalPlayers,
             IsReplayOwner = isRecorder,
@@ -750,9 +750,9 @@ public static class TreasureNames
     /// <summary>Prize id -> display name, loaded from treasures.json (user editable).</summary>
     public static Dictionary<string, string> PrizeNames { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>Key prefix of a treasure whose prize id is not in the replay ("Inconnu:" before version 1.1).</summary>
+    /// <summary>Key prefix of a treasure whose prize id is not in the replay (another prefix before version 1.1).</summary>
     public const string UnknownPrefix = "Unknown:";
-    public const string UnknownGizmoFr = "Gizmo de trésor";
+    public const string UnknownGizmo = "Treasure gizmo";
     private const string OldUnknownPrefix = "Inconnu:";
 
     /// <summary>Display name of a prize id (from treasures.json), or of a treasure item blueprint.</summary>
@@ -778,18 +778,18 @@ public static class TreasureNames
                 }
                 // Not a golden chest prize (those carry their id): one of the treasure hunt gizmos (golden
                 // firework, portable extractor, locators, extraction accelerator), exact one not in the replay.
-                return L.Name(UnknownGizmoFr);
+                return L.Name(UnknownGizmo);
             }
             return L.T($"Tesoro desconocido ({item[(item.IndexOf(':') + 1)..]})", $"Unknown treasure ({item[(item.IndexOf(':') + 1)..]})");
         }
 
 
         var i = item.ToLowerInvariant();
-        if (i.Contains("flameceleb")) return "Feu d'artifice doré";
-        if (i.Contains("relicextractor")) return "Extracteur portable";
-        if (i.Contains("relicfinder")) return "Localisateur d'esprit";
-        if (i.Contains("luckylocator")) return "Localisateur chanceux";
-        if (i.Contains("smugglerextractionkey") || i.Contains("extractionaccelerat")) return "Accélérateur d'extraction";
+        if (i.Contains("flameceleb")) return "Golden firework";
+        if (i.Contains("relicextractor")) return "Portable extractor";
+        if (i.Contains("relicfinder")) return "Spirit locator";
+        if (i.Contains("luckylocator")) return "Lucky locator";
+        if (i.Contains("smugglerextractionkey") || i.Contains("extractionaccelerat")) return "Extraction accelerator";
         return item;
     }
 }
@@ -797,18 +797,18 @@ public static class TreasureNames
 public static class ChestKinds
 {
     // Chests (counted in the total)
-    public const string Normal = "Coffre";
-    public const string Rare = "Coffre rare";
-    public const string Buried = "Coffre enterré";
-    public const string Extraction = "Coffre d'extraction / reliques";
-    public const string PosterChest = "Coffre des affiches d'esprit";
-    public const string Other = "Autre coffre";
+    public const string Normal = "Chest";
+    public const string Rare = "Rare chest";
+    public const string Buried = "Buried chest";
+    public const string Extraction = "Extraction / relic chest";
+    public const string PosterChest = "Spirit poster chest";
+    public const string Other = "Other chest";
 
     // Other interactions (tracked separately, not in the chest total)
-    public const string Cannon = "Canon à butin";
-    public const string AmmoBox = "Caisse de munitions";
-    public const string FoodBox = "Caisse de nourriture";
-    public const string OtherContainer = "Autre conteneur";
+    public const string Cannon = "Loot cannon";
+    public const string AmmoBox = "Ammo box";
+    public const string FoodBox = "Food box";
+    public const string OtherContainer = "Other container";
 
     private static readonly HashSet<string> ChestSet = new() { Normal, Rare, Buried, Extraction, PosterChest, Other };
 

@@ -45,37 +45,67 @@ public static class L
     /// <summary>Fecha corta + hora de una partida ("05/11 22:54" / "Nov 5 22:54").</summary>
     public static string DateTimeShort(DateTime d) => d.ToString(En ? "MMM d HH:mm" : "dd/MM HH:mm", Culture);
 
-    // Nombres guardados en francés (data.json) -> nombre mostrado.
+    // Nombres internos guardados en data.json (en inglés) -> nombre mostrado.
     private static readonly Dictionary<string, (string Es, string En)> Names = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["Coffre"] = ("Cofre", "Chest"),
-        ["Coffre rare"] = ("Cofre raro", "Rare chest"),
-        ["Coffre enterré"] = ("Cofre enterrado", "Buried chest"),
-        ["Coffre d'extraction / reliques"] = ("Cofre de extracción / reliquias", "Extraction / relic chest"),
-        ["Coffre des affiches d'esprit"] = ("Cofre de los carteles de espíritu", "Spirit poster chest"),
-        ["Autre coffre"] = ("Otro cofre", "Other chest"),
-        ["Canon à butin"] = ("Cañón de botín", "Loot cannon"),
-        ["Caisse de munitions"] = ("Caja de munición", "Ammo box"),
-        ["Caisse de nourriture"] = ("Caja de comida", "Food box"),
-        ["Autre conteneur"] = ("Otro contenedor", "Other container"),
-        ["Trésor"] = ("Tesoro", "Treasure"),
-        ["Trésor (type inconnu)"] = ("Tesoro (tipo desconocido)", "Treasure (unknown type)"),
-        ["Gizmo de trésor"] = ("Artilugio de tesoro", "Treasure gizmo"),
-        ["Feu d'artifice doré"] = ("Fuego artificial dorado", "Golden firework"),
-        ["Extracteur portable"] = ("Extractor portátil", "Portable extractor"),
-        ["Localisateur d'esprit"] = ("Localizador de espíritu", "Spirit locator"),
-        ["Localisateur chanceux"] = ("Localizador afortunado", "Lucky locator"),
-        ["Accélérateur d'extraction"] = ("Acelerador de extracción", "Extraction accelerator"),
-        ["inconnu"] = ("desconocido", "unknown"),
+        ["Chest"] = ("Cofre", "Chest"),
+        ["Rare chest"] = ("Cofre raro", "Rare chest"),
+        ["Buried chest"] = ("Cofre enterrado", "Buried chest"),
+        ["Extraction / relic chest"] = ("Cofre de extracción / reliquias", "Extraction / relic chest"),
+        ["Spirit poster chest"] = ("Cofre de los carteles de espíritu", "Spirit poster chest"),
+        ["Other chest"] = ("Otro cofre", "Other chest"),
+        ["Loot cannon"] = ("Cañón de botín", "Loot cannon"),
+        ["Ammo box"] = ("Caja de munición", "Ammo box"),
+        ["Food box"] = ("Caja de comida", "Food box"),
+        ["Other container"] = ("Otro contenedor", "Other container"),
+        ["Treasure"] = ("Tesoro", "Treasure"),
+        ["Treasure (unknown type)"] = ("Tesoro (tipo desconocido)", "Treasure (unknown type)"),
+        ["Treasure gizmo"] = ("Artilugio de tesoro", "Treasure gizmo"),
+        ["Golden firework"] = ("Fuego artificial dorado", "Golden firework"),
+        ["Portable extractor"] = ("Extractor portátil", "Portable extractor"),
+        ["Spirit locator"] = ("Localizador de espíritu", "Spirit locator"),
+        ["Lucky locator"] = ("Localizador afortunado", "Lucky locator"),
+        ["Extraction accelerator"] = ("Acelerador de extracción", "Extraction accelerator"),
+        ["unknown"] = ("desconocido", "unknown"),
     };
 
-    /// <summary>Nombre mostrado de un tipo de cofre u objeto guardado en francés.</summary>
+    /// <summary>
+    /// Nombres internos de versiones anteriores a la 2.0.9 (estaban en francés) -> nombre interno actual.
+    /// Solo se usa para convertir el historial antiguo al abrirlo.
+    /// </summary>
+    private static readonly Dictionary<string, string> Legacy = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Coffre"] = "Chest",
+        ["Coffre rare"] = "Rare chest",
+        ["Coffre enterr\u00e9"] = "Buried chest",
+        ["Coffre d'extraction / reliques"] = "Extraction / relic chest",
+        ["Coffre des affiches d'esprit"] = "Spirit poster chest",
+        ["Autre coffre"] = "Other chest",
+        ["Canon \u00e0 butin"] = "Loot cannon",
+        ["Caisse de munitions"] = "Ammo box",
+        ["Caisse de nourriture"] = "Food box",
+        ["Autre conteneur"] = "Other container",
+        ["Tr\u00e9sor"] = "Treasure",
+        ["Tr\u00e9sor (type inconnu)"] = "Treasure (unknown type)",
+        ["Gizmo de tr\u00e9sor"] = "Treasure gizmo",
+        ["Feu d'artifice dor\u00e9"] = "Golden firework",
+        ["Extracteur portable"] = "Portable extractor",
+        ["Localisateur d'esprit"] = "Spirit locator",
+        ["Localisateur chanceux"] = "Lucky locator",
+        ["Acc\u00e9l\u00e9rateur d'extraction"] = "Extraction accelerator",
+        ["inconnu"] = "unknown",
+    };
+
+    /// <summary>Nombre interno actual de un nombre guardado por una versión anterior (o el mismo si no cambió).</summary>
+    public static string Upgrade(string stored) => Legacy.TryGetValue(stored, out var current) ? current : stored;
+
+    /// <summary>Nombre mostrado de un tipo de cofre u objeto guardado en data.json.</summary>
     public static string Name(string? stored)
     {
         if (string.IsNullOrEmpty(stored))
         {
             return stored ?? "";
         }
-        return Names.TryGetValue(stored, out var pair) ? (En ? pair.En : pair.Es) : stored;
+        return Names.TryGetValue(Upgrade(stored), out var pair) ? (En ? pair.En : pair.Es) : stored;
     }
 }
