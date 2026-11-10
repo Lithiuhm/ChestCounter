@@ -241,7 +241,7 @@ public sealed class Store
     public string ErrorLogPath => Path.Combine(Folder, "errors.log");
 
     /// <summary>Premios conocidos de la caza del tesoro (semana 1). Los ids nuevos se añaden solos con un nombre vacío.</summary>
-    public static Dictionary<string, string> DefaultPrizeNames => L.En
+    public static Dictionary<string, string> DefaultPrizeNames => L.Code != "es"
         ? new()
         {
             ["DelilahPrize:dpid_item1"] = "A$AP Rocky solid gold gauntlets (pickaxe) ?",

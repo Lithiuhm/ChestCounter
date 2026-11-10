@@ -153,10 +153,10 @@ public sealed class Tracker
                 var mb = (file.Length / 1024 / 1024.0).ToString("F1", L.Culture);
                 var justEnded = DateTime.UtcNow - file.LastWriteTimeUtc < TimeSpan.FromMinutes(2);
                 Console.WriteLine(justEnded
-                    ? L.T($"[{DateTime.Now:HH:mm:ss}] Partida terminada: analizando el replay ({mb} MB)…",
-                          $"[{DateTime.Now:HH:mm:ss}] Match over: analyzing the replay ({mb} MB)…")
-                    : L.T($"[{DateTime.Now:HH:mm:ss}] Analizando {file.Name} ({mb} MB)…",
-                          $"[{DateTime.Now:HH:mm:ss}] Analyzing {file.Name} ({mb} MB)…"));
+                    ? L.F("[{0:HH:mm:ss}] Partida terminada: analizando el replay ({1} MB)…",
+                          "[{0:HH:mm:ss}] Match over: analyzing the replay ({1} MB)…", DateTime.Now, mb)
+                    : L.F("[{0:HH:mm:ss}] Analizando {1} ({2} MB)…",
+                          "[{0:HH:mm:ss}] Analyzing {1} ({2} MB)…", DateTime.Now, file.Name, mb));
                 Console.ResetColor();
             }
 
@@ -298,7 +298,7 @@ public sealed class Tracker
         if (o.Error != null)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(L.T($"   No se puede leer este replay: {o.Error}", $"   Cannot read this replay: {o.Error}"));
+            Console.WriteLine(L.F("   No se puede leer este replay: {0}", "   Cannot read this replay: {0}", o.Error));
             Console.ResetColor();
             PrintErrorLogHint();
             return;
@@ -316,8 +316,8 @@ public sealed class Tracker
         {
             Console.ForegroundColor = ConsoleColor.DarkYellow;
             var name = m.PlayerName ?? L.T("cuenta desconocida", "unknown account");
-            Console.WriteLine(L.T($"   Partida jugada en otra cuenta ({name}): cuenta para su propio perfil. Perfil mostrado: {current.Name}.",
-                $"   Match played on another account ({name}): it counts for its own profile. Profile shown: {current.Name}."));
+            Console.WriteLine(L.F("   Partida jugada en otra cuenta ({0}): cuenta para su propio perfil. Perfil mostrado: {1}.",
+                "   Match played on another account ({0}): it counts for its own profile. Profile shown: {1}.", name, current.Name));
             Console.ResetColor();
         }
         PrintNewPrizeIds(o.NewPrizeIds);
@@ -330,8 +330,8 @@ public sealed class Tracker
         if (ids is { Count: > 0 })
         {
             Console.ForegroundColor = ConsoleColor.DarkYellow;
-            Console.WriteLine(L.T($"   Tesoro(s) por nombrar en {_store.PrizeNamesPath}: {string.Join(", ", ids)}",
-                $"   Treasure(s) to name in {_store.PrizeNamesPath}: {string.Join(", ", ids)}"));
+            Console.WriteLine(L.F("   Tesoro(s) por nombrar en {0}: {1}",
+                "   Treasure(s) to name in {0}: {1}", _store.PrizeNamesPath, string.Join(", ", ids)));
             Console.ResetColor();
         }
     }
@@ -339,8 +339,8 @@ public sealed class Tracker
     private void PrintErrorLogHint()
     {
         Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.WriteLine(L.T($"   Detalles en {_store.ErrorLogPath}. Suele deberse a una actualización de Fortnite: notifícalo en {AppInfo.IssuesUrl}",
-            $"   Details in {_store.ErrorLogPath}. Usually caused by a Fortnite update: report it at {AppInfo.IssuesUrl}"));
+        Console.WriteLine(L.F("   Detalles en {0}. Suele deberse a una actualización de Fortnite: notifícalo en {1}",
+            "   Details in {0}. Usually caused by a Fortnite update: report it at {1}", _store.ErrorLogPath, AppInfo.IssuesUrl));
         Console.ResetColor();
     }
 
@@ -367,14 +367,14 @@ public sealed class Tracker
         if (skipped > 0)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine(L.T($"    {skipped} ignorado(s): modos creativos o partidas ya contadas.",
-                $"    {skipped} skipped: Creative modes or matches already counted."));
+            Console.WriteLine(L.F("    {0} ignorado(s): modos creativos o partidas ya contadas.",
+                "    {0} skipped: Creative modes or matches already counted.", skipped));
             Console.ResetColor();
         }
         if (errors.Count > 0)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(L.T($"    {errors.Count} replay(s) ilegible(s):", $"    {errors.Count} unreadable replay(s):"));
+            Console.WriteLine(L.F("    {0} replay(s) ilegible(s):", "    {0} unreadable replay(s):", errors.Count));
             foreach (var e in errors.Take(5))
             {
                 Console.WriteLine($"      {e}");
@@ -478,8 +478,8 @@ public sealed class Tracker
             _liveFile = file.FullName;
             started = true;
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine(L.T($"[{DateTime.Now:HH:mm:ss}] Partida en curso… (sus cofres se contarán al final)",
-                $"[{DateTime.Now:HH:mm:ss}] Match in progress… (its chests will be counted at the end)"));
+            Console.WriteLine(L.F("[{0:HH:mm:ss}] Partida en curso… (sus cofres se contarán al final)",
+                "[{0:HH:mm:ss}] Match in progress… (its chests will be counted at the end)", DateTime.Now));
             Console.ResetColor();
         }
 
@@ -559,7 +559,7 @@ public sealed class Tracker
         Console.ForegroundColor = ConsoleColor.Yellow;
         var destroyed = m.Chests.Count(c => c.Destroyed);
         Console.Write(L.Count(m.ChestsOpened, "cofre", "cofres", "chest", "chests")
-            + (destroyed > 0 ? L.T($" ({destroyed} destruido(s))", $" ({destroyed} destroyed)") : ""));
+            + (destroyed > 0 ? L.F(" ({0} destruido(s))", " ({0} destroyed)", destroyed) : ""));
         Console.ResetColor();
         Console.WriteLine($"  →  total: {L.N(total)}");
 
@@ -570,8 +570,9 @@ public sealed class Tracker
             if (!find.SourceIsChest)
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine(L.T($"   ⚑ Origen inusual: {find.SourceLabel}{(find.SourceCertain ? "" : " (probable)")} [{find.SourceBlueprint}] → anotado en el informe",
-                    $"   ⚑ Unusual source: {find.SourceLabel}{(find.SourceCertain ? "" : " (likely)")} [{find.SourceBlueprint}] → noted in the report"));
+                Console.WriteLine(L.F("   ⚑ Origen inusual: {0}{1} [{2}] → anotado en el informe",
+                    "   ⚑ Unusual source: {0}{1} [{2}] → noted in the report",
+                    find.SourceLabel, find.SourceCertain ? "" : L.T(" (probable)", " (likely)"), find.SourceBlueprint));
             }
             Console.ResetColor();
         }
@@ -590,12 +591,12 @@ public sealed class Tracker
         {
             sb.Append($"{profile.Name}   |   ");
         }
-        sb.Append(L.T($"Partidas: {L.N(matches.Count)}   |   Cofres: {L.N(chests)}   |   Tesoros: {L.N(treasures)}",
-            $"Matches: {L.N(matches.Count)}   |   Chests: {L.N(chests)}   |   Treasures: {L.N(treasures)}"));
+        sb.Append(L.F("Partidas: {0}   |   Cofres: {1}   |   Tesoros: {2}",
+            "Matches: {0}   |   Chests: {1}   |   Treasures: {2}", L.N(matches.Count), L.N(chests), L.N(treasures)));
         if (matches.Count > 0)
         {
             var avg = ((double)counted / matches.Count).ToString("F1", L.Culture);
-            sb.Append(L.T($"   |   Media: {avg} / partida", $"   |   Average: {avg} / match"));
+            sb.Append(L.F("   |   Media: {0} / partida", "   |   Average: {0} / match", avg));
         }
 
         Console.ForegroundColor = ConsoleColor.Cyan;

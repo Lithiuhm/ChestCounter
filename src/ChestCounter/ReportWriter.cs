@@ -36,7 +36,7 @@ public static class Pretty
         }
         var ordinal = L.Ordinal(place);
         return m.TotalPlayers is int total && total > 0
-            ? (L.En ? $"{ordinal} of {total}" : $"{ordinal} de {total}")
+            ? L.F("{0} de {1}", "{0} of {1}", ordinal, total)
             : ordinal;
     }
 
@@ -105,7 +105,7 @@ public static class ReportWriter
         }
         catch (Exception ex)
         {
-            Console.WriteLine(L.T($"No se pudo escribir el informe: {ex.Message}", $"Cannot write the report: {ex.Message}"));
+            Console.WriteLine(L.F("No se pudo escribir el informe: {0}", "Cannot write the report: {0}", ex.Message));
         }
     }
 
@@ -272,8 +272,8 @@ public static class ReportWriter
 
         var sb = new StringBuilder();
         var title = L.T("Contador de cofres", "Chest Counter");
-        var updated = L.T($"Actualizado {DateTime.Now.ToString("dd/MM/yyyy HH:mm", Loc)} · en directo",
-            $"Updated {DateTime.Now.ToString("MMM d, yyyy HH:mm", Loc)} · live");
+        var updated = L.F("Actualizado {0} · en directo", "Updated {0} · live",
+            DateTime.Now.ToString(L.En ? "MMM d, yyyy HH:mm" : "dd/MM/yyyy HH:mm", Loc));
         var heading = player.Length > 0 ? H(player) : title;
         sb.Append($"""
             <!doctype html><html lang="{L.Code}"><head><meta charset="utf-8">
@@ -291,7 +291,7 @@ public static class ReportWriter
 
         // Cifras clave: el total destaca; al lado, el resto.
         var initialNote = initialChests > 0
-            ? L.T($"Incluye {N(initialChests)} estimados de antes de usar la herramienta", $"Includes {N(initialChests)} estimated from before the tool")
+            ? L.F("Incluye {0} estimados de antes de usar la herramienta", "Includes {0} estimated from before the tool", N(initialChests))
             : L.T("Cofres abiertos o destruidos por ti, según tus replays", "Chests you opened or destroyed, from your replays");
         sb.Append($"""
             <div class="kpis">
@@ -410,9 +410,7 @@ public static class ReportWriter
             if (unusual.Count > 0)
             {
                 var kinds = H(string.Join(", ", unusual.Select(r => L.Name(r.f.SourceKind)).Distinct()));
-                sb.Append(L.En
-                    ? $"<div class=\"flag\"><span class=\"ic\">⚑</span><div><b>{L.Count(unusual.Count, "", "", "treasure", "treasures")} obtained other than from a chest</b>: {kinds}. Highlighted in the table below.</div></div>"
-                    : $"<div class=\"flag\"><span class=\"ic\">⚑</span><div><b>{L.Count(unusual.Count, "tesoro obtenido", "tesoros obtenidos", "", "")} de otra forma que con un cofre</b>: {kinds}. Resaltados en la tabla de abajo.</div></div>");
+                sb.Append($"<div class=\"flag\"><span class=\"ic\">⚑</span><div><b>{L.Count(unusual.Count, "tesoro obtenido", "tesoros obtenidos", "treasure obtained", "treasures obtained")} {L.T("de otra forma que con un cofre", "other than from a chest")}</b>: {kinds}. {L.T("Resaltados en la tabla de abajo.", "Highlighted in the table below.")}</div></div>");
             }
 
             sb.Append($"""
@@ -436,7 +434,7 @@ public static class ReportWriter
         var shown = matches.Take(100).ToList();
         var shownMax = Math.Max(1, shown.Select(m => m.ChestsOpened).DefaultIfEmpty(0).Max());
         sb.Append($"""
-            <section><div class="sh"><h2>{L.T("Últimas partidas", "Latest matches")}</h2><span class="meta">{(matches.Count > shown.Count ? L.T($"las {shown.Count} más recientes de {N(matches.Count)}", $"latest {shown.Count} of {N(matches.Count)}") : L.Count(matches.Count, "partida", "partidas", "match", "matches"))}</span></div>
+            <section><div class="sh"><h2>{L.T("Últimas partidas", "Latest matches")}</h2><span class="meta">{(matches.Count > shown.Count ? L.F("las {0} más recientes de {1}", "latest {0} of {1}", shown.Count, N(matches.Count)) : L.Count(matches.Count, "partida", "partidas", "match", "matches"))}</span></div>
             <div class="card tw"><table><thead><tr><th>{L.T("Fecha", "Date")}</th><th>{L.T("Modo", "Mode")}</th><th>{L.T("Puesto", "Placement")}</th><th class="r">{L.T("Cofres", "Chests")}</th><th>{L.T("Tesoros", "Treasures")}</th></tr></thead><tbody>
             """);
         if (shown.Count == 0)
@@ -454,7 +452,7 @@ public static class ReportWriter
         }
         sb.Append("</tbody></table></div></section>");
 
-        sb.Append(L.T(
+        sb.Append(L.Big("footer",
             """
             <footer><h3>Cómo se cuenta</h3>
             <p>Cuenta los cofres que abriste o destruiste tú mismo, según tus archivos de replay (analizados tras cada partida). Las cajas de munición y de comida no se cuentan.</p>
@@ -498,7 +496,7 @@ public static class ReportWriter
             return "";
         }
         var pct = p.Total > 0 ? (int)Math.Round(100.0 * p.Done / p.Total) : 0;
-        var head = L.T($"Analizando tus replays… {p.Done} / {p.Total}", $"Analyzing your replays… {p.Done} / {p.Total}");
+        var head = L.F("Analizando tus replays… {0} / {1}", "Analyzing your replays… {0} / {1}", p.Done, p.Total);
         var note = L.T("Esta página se actualiza sola: las cifras de abajo aumentan a medida que se leen los replays.",
             "This page updates by itself: the numbers below grow as the replays are read.");
         return $"""<div class="loading"><div class="spin"></div><div class="grow"><b>{head}</b><div class="pbar"><i style="width:{pct}%"></i></div><span class="muted">{note}</span></div></div>""";

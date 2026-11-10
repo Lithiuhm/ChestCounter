@@ -76,7 +76,7 @@ internal static class Program
                 case "--after-update": afterUpdate = true; break;
                 case "-h":
                 case "--help":
-                    Console.WriteLine(L.T("""
+                    Console.WriteLine(L.Big("help", """
                         Contador de cofres de Fortnite
 
                         Opciones:
@@ -128,7 +128,7 @@ internal static class Program
         var config = reset ? null : store.LoadConfig();
         var firstRun = config == null;
         config ??= new Config();
-        config.Language = L.En ? "en" : "es";
+        config.Language = L.Code;
 
         if (demosArg != null) config.DemosFolder = demosArg;
         var defaultDemos = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FortniteGame", "Saved", "Demos");
@@ -159,8 +159,8 @@ internal static class Program
                 Thread.Sleep(600);
                 var file = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(previewPath)) ?? ".", Path.GetFileNameWithoutExtension(previewPath) + suffix + ".png");
                 Console.WriteLine(NativeOverlay.Snapshot(file)
-                    ? L.T($"Vista previa: {file}", $"Preview: {file}")
-                    : L.T($"Error al capturar: {file}", $"Capture failed: {file}"));
+                    ? L.F("Vista previa: {0}", "Preview: {0}", file)
+                    : L.F("Error al capturar: {0}", "Capture failed: {0}", file));
             }
             return 0;
         }
@@ -178,7 +178,7 @@ internal static class Program
             tracker.Scan(ignoreQuietPeriod: true);
             ReportWriter.WriteAll(store, config, data);
             tracker.PrintSummary();
-            Console.WriteLine(L.T($"  Informe: {store.ReportPath}", $"  Report: {store.ReportPath}"));
+            Console.WriteLine(L.F("  Informe: {0}", "  Report: {0}", store.ReportPath));
             return 0;
         }
 
@@ -186,7 +186,7 @@ internal static class Program
         if (firstRun)
         {
             MessageBox.Show(
-                L.T("Este contador cuenta tus cofres a partir de los replays de Fortnite.\n\n" +
+                L.Big("intro", "Este contador cuenta tus cofres a partir de los replays de Fortnite.\n\n" +
                     "Importante: en Fortnite activa Ajustes → Juego → Replays → Grabar replays.\n" +
                     "Sin eso, Fortnite no guarda replays y no hay nada que contar.",
                     "This counter counts your chests from the Fortnite replays.\n\n" +
@@ -199,8 +199,8 @@ internal static class Program
             {
                 var count = L.Count(existing.Count, "replay", "replays", "replay", "replays");
                 var answer = MessageBox.Show(
-                    L.T($"Hay {count} en tu PC. ¿Contarlos también?\n\nSí: se analizan ahora.   No: solo cuentan tus próximas partidas.",
-                        $"There are {count} on your PC. Count them too?\n\nYes: they are analyzed now.   No: only your next matches count."),
+                    L.F("Hay {0} en tu PC. ¿Contarlos también?\n\nSí: se analizan ahora.   No: solo cuentan tus próximas partidas.",
+                        "There are {0} on your PC. Count them too?\n\nYes: they are analyzed now.   No: only your next matches count.", count),
                     "ChestCounter", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (answer == DialogResult.No)
                 {

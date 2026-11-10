@@ -780,7 +780,7 @@ public static class TreasureNames
                 // firework, portable extractor, locators, extraction accelerator), exact one not in the replay.
                 return L.Name(UnknownGizmo);
             }
-            return L.T($"Tesoro desconocido ({item[(item.IndexOf(':') + 1)..]})", $"Unknown treasure ({item[(item.IndexOf(':') + 1)..]})");
+            return L.F("Tesoro desconocido ({0})", "Unknown treasure ({0})", item[(item.IndexOf(':') + 1)..]);
         }
 
 

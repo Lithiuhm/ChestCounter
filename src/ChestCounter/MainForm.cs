@@ -285,7 +285,7 @@ public sealed class MainForm : Form
         _statBestMatch.Text = st.Matches > 0 ? L.N(st.BestMatch) : "—";
         _statMatches.Text = L.Count(st.HistoryMatches, "partida", "partidas", "match", "matches");
         _statMatchesCap.Text = st.HistorySince is { } since
-            ? L.T($"Desde {since:dd/MM/yy}", $"Since {since:dd/MM/yy}")
+            ? L.F("Desde {0:dd/MM/yy}", "Since {0:dd/MM/yy}", since)
             : L.T("Histórico", "History");
         _statTreasures.Text = $"{OverlayModel.TreasureIcon} {L.N(st.Treasures)}";
         _overlayButton.Enabled = _monitor.OverlayEnabled;
@@ -295,10 +295,10 @@ public sealed class MainForm : Form
         {
             _lastValue.Text = L.Count(lm.Chests, "cofre abierto", "cofres abiertos", "chest opened", "chests opened");
             var parts = new List<string>();
-            if (lm.Destroyed > 0) parts.Add(L.T($"{lm.Destroyed} roto(s)", $"{lm.Destroyed} destroyed"));
+            if (lm.Destroyed > 0) parts.Add(L.F("{0} roto(s)", "{0} destroyed", lm.Destroyed));
             if (lm.Treasures > 0) parts.Add(L.Count(lm.Treasures, "tesoro", "tesoros", "treasure", "treasures"));
             if (lm.Placement is { } place) parts.Add(lm.Players is { } players ? $"{L.Ordinal(place)} {L.T("de", "of")} {players}" : L.Ordinal(place));
-            if (lm.Eliminations is { } elim) parts.Add(L.T($"{elim} elim.", $"{elim} elim."));
+            if (lm.Eliminations is { } elim) parts.Add(L.F("{0} elim.", "{0} elim.", elim));
             _lastDetail.Text = string.Join("  ·  ", parts);
         }
         else
@@ -343,8 +343,8 @@ public sealed class MainForm : Form
         _update.Visible = s.Update != null;
         if (s.Update != null)
         {
-            _update.Text = L.T($"Instalar la versión {s.Update.Version.ToString(3)} (tienes la {AppInfo.VersionText})",
-                $"Install version {s.Update.Version.ToString(3)} (you have {AppInfo.VersionText})");
+            _update.Text = L.F("Instalar la versión {0} (tienes la {1})", "Install version {0} (you have {1})",
+                s.Update.Version.ToString(3), AppInfo.VersionText);
         }
         _notice.Text = s.Notice ?? "";
         _notice.Cursor = s.AutoCloseOffer ? Cursors.Hand : Cursors.Default;

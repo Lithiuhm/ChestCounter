@@ -85,7 +85,7 @@ public static class NativeOverlay
             }
             catch (Exception ex)
             {
-                Console.WriteLine(L.T($"Overlay no disponible: {ex.Message}", $"Overlay unavailable: {ex.Message}"));
+                Console.WriteLine(L.F("Overlay no disponible: {0}", "Overlay unavailable: {0}", ex.Message));
                 ready.Set();
             }
         })
@@ -336,8 +336,9 @@ public static class NativeOverlay
         {
             _onLockChanged?.Invoke(locked);
             Console.WriteLine(locked
-                ? L.T($"Overlay bloqueado: el ratón lo atraviesa. Clic en el candado{(LockHotkeyRegistered ? " o Ctrl+Mayús+L" : "")} para desbloquearlo.",
-                      $"Overlay locked: the mouse goes through it. Click the padlock{(LockHotkeyRegistered ? " or press Ctrl+Shift+L" : "")} to unlock it.")
+                ? L.F("Overlay bloqueado: el ratón lo atraviesa. Clic en el candado{0} para desbloquearlo.",
+                      "Overlay locked: the mouse goes through it. Click the padlock{0} to unlock it.",
+                      LockHotkeyRegistered ? L.T(" o Ctrl+Mayús+L", " or press Ctrl+Shift+L") : "")
                 : L.T("Overlay desbloqueado: arrastra con el botón izquierdo para moverlo; bloquéalo de nuevo con el candado.",
                       "Overlay unlocked: drag it with the left mouse button; lock it again with the padlock."));
         }

@@ -276,7 +276,7 @@ public sealed class Monitor
                 CloseRequested?.Invoke();
                 return;
             }
-            _notice = L.T($"No se pudo actualizar: {error}", $"Update failed: {error}");
+            _notice = L.F("No se pudo actualizar: {0}", "Update failed: {0}", error);
             RequestPublish();
         });
     }
@@ -317,7 +317,7 @@ public sealed class Monitor
                 catch (Exception ex)
                 {
                     ErrorLog.Write("Restablecer estadísticas", ex);
-                    _notice = L.T($"No se pudo restablecer: {ex.Message}", $"Could not reset: {ex.Message}");
+                    _notice = L.F("No se pudo restablecer: {0}", "Could not reset: {0}", ex.Message);
                 }
             }
 

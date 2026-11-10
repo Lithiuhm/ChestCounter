@@ -47,7 +47,7 @@ public sealed class SettingsForm : Form
 
         // Cabecera, como en la ventana principal.
         Lbl(this, L.T("AJUSTES", "SETTINGS"), 8.5f, FontStyle.Bold, Theme.Cyan, new Point(LeftX, 14), new Size(200, 18));
-        Lbl(this, L.T($"Versión {AppInfo.VersionText}", $"Version {AppInfo.VersionText}"), 8.0f, FontStyle.Regular, Theme.Muted,
+        Lbl(this, L.F("Versión {0}", "Version {0}", AppInfo.VersionText), 8.0f, FontStyle.Regular, Theme.Muted,
             new Point(RightX, 13), new Size(RightW, 18), ContentAlignment.TopRight);
 
         // ---- Columna izquierda ---------------------------------------------------------------
@@ -137,7 +137,7 @@ public sealed class SettingsForm : Form
         };
         var profileName = monitor.ShownProfileName;
         Lbl(initial, profileName != null
-                ? L.T($"estimado · se suma al total de {profileName}", $"estimate · added to {profileName}'s total")
+                ? L.F("estimado · se suma al total de {0}", "estimate · added to {0}'s total", profileName)
                 : L.T("estimado · se suma a tu total", "estimate · added to your total"),
             8.0f, FontStyle.Regular, Theme.Muted, new Point(16, 74), new Size(RightW - 70, 16));
 
@@ -279,7 +279,7 @@ public sealed class SettingsForm : Form
         _loading = true;
         _initial.Text = "0";
         _loading = false;
-        MessageBox.Show(this, L.T($"Estadísticas restablecidas. Copia de seguridad: {Path.GetFileName(backup)}", $"Statistics reset. Backup copy: {Path.GetFileName(backup)}"),
+        MessageBox.Show(this, L.F("Estadísticas restablecidas. Copia de seguridad: {0}", "Statistics reset. Backup copy: {0}", Path.GetFileName(backup)),
             L.T("Restablecer estadísticas", "Reset statistics"), MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
