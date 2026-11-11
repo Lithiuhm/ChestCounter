@@ -121,7 +121,7 @@ The replays saved on a PC are normally those of its player, so there is **no nam
 
 ## Updates
 
-At startup, the counter checks GitHub for a new version. When there is one, it tells you, and the install button downloads it, checks it and restarts the counter: your history and settings are kept. In the settings (the **Settings** button) you can choose between *offered* (default), *installed automatically* (only between two matches) or *off* (no network access at all).
+At startup, the counter checks GitHub for a new version. When there is one, it is downloaded, checked and the counter restarts between two matches: your history and settings are kept. In the settings (the **Settings** button) you can choose between *installed automatically* (default, only between two matches), *offered* or *off* (no network access at all).
 
 ## Your data
 

@@ -121,7 +121,7 @@ Las repeticiones guardadas en un PC suelen ser las de su jugador, así que **no 
 
 ## Actualizaciones
 
-Al iniciarse, el contador comprueba en GitHub si hay una nueva versión. Si la hay, te avisa, y al pulsar el botón de instalación se descarga, se verifica y se reinicia el contador: tu historial y tus ajustes se conservan. En los ajustes (botón **Ajustes**) puedes elegir entre *ofrecer* (por defecto), *instalar automáticamente* (solo entre dos partidas) o *desactivadas* (ningún acceso a la red).
+Al iniciarse, el contador comprueba en GitHub si hay una nueva versión. Si la hay, se descarga, se verifica y se reinicia el contador entre dos partidas: tu historial y tus ajustes se conservan. En los ajustes (botón **Ajustes**) puedes elegir entre *instalar automáticamente* (por defecto, solo entre dos partidas), *ofrecer* o *desactivadas* (ningún acceso a la red).
 
 ## Tus datos
 
