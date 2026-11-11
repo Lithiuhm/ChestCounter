@@ -101,6 +101,16 @@ public sealed class Monitor
     /// <summary>Se pone a true cuando hay que reiniciar la nueva versión.</summary>
     public bool RestartAfterUpdate { get; private set; }
 
+    /// <summary>Reinicio pedido desde Ajustes (cambio de idioma): la ventana se cierra y el exe vuelve a arrancar.</summary>
+    public bool RestartRequested { get; private set; }
+
+    /// <summary>Cierra el contador para volver a abrirlo (los textos se leen al arrancar).</summary>
+    public void Restart()
+    {
+        RestartRequested = true;
+        CloseRequested?.Invoke();
+    }
+
     /// <summary>Estado nuevo. Se llama desde el hilo de vigilancia: la ventana debe usar BeginInvoke.</summary>
     public event Action<MonitorState>? Changed;
 

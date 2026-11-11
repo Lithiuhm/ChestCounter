@@ -50,7 +50,8 @@ public sealed class SettingsForm : Form
         // Cabecera, como en la ventana principal.
         Lbl(this, L.T("AJUSTES", "SETTINGS"), 8.5f, FontStyle.Bold, Theme.Cyan, new Point(LeftX, 14), new Size(200, 18));
         Lbl(this, L.F("Versión {0}", "Version {0}", AppInfo.VersionText), 8.0f, FontStyle.Regular, Theme.Muted,
-            new Point(RightX, 13), new Size(RightW, 18), ContentAlignment.TopRight);
+            new Point(RightX + 180, 13), new Size(RightW - 180, 18), ContentAlignment.TopRight);
+        AddLanguagePicker(config.Language, new Point(RightX, 9));
 
         // ---- Columna izquierda ---------------------------------------------------------------
 
@@ -58,7 +59,7 @@ public sealed class SettingsForm : Form
         var start = AddCard(LeftX, 40, LeftW, 170, 16);
         CardTitle(start, L.T("Opciones", "Options"));
         _fortnite = AddToggleRow(start, L.T("Abrir con Fortnite", "Open with Fortnite"),
-            L.T("Cuenta tus partidas sin pensar en ello", "Counts your matches without thinking about it"), 24, config.StartWithFortnite);
+            L.T("Cuenta tus partidas sin pensar en ello", "Counts your matches on its own"), 24, config.StartWithFortnite);
         _fortnite.CheckedChanged += (_, _) =>
         {
             if (_loading)
@@ -219,7 +220,7 @@ public sealed class SettingsForm : Form
 
         // Atajos del overlay.
         var keys = AddCard(RightX, 375, RightW, 55, 12);
-        Lbl(keys, L.T("Atajos del overlay", "Overlay shortcuts"), 7.5f, FontStyle.Regular, Theme.Muted, new Point(13, 9), new Size(RightW - 26, 13));
+        Lbl(keys, L.T("Atajos del overlay", "Overlay shortcuts"), 7.5f, FontStyle.Regular, Theme.Muted, new Point(13, 7), new Size(RightW - 26, 17));
         Lbl(keys, L.T("Ctrl+Mayús+O mostrar  ·  Ctrl+Mayús+L fijar", "Ctrl+Shift+O show  ·  Ctrl+Shift+L lock"),
             8.0f, FontStyle.Bold, Theme.Ink, new Point(13, 27), new Size(RightW - 26, 18));
 
@@ -261,9 +262,116 @@ public sealed class SettingsForm : Form
                 ("TikTok", "https://www.tiktok.com/@xdoofy92", "social-tiktok"),
             });
 
+        FitTexts(this);
         AcceptButton = close;
         CancelButton = close;
         ActiveControl = close; // sin anillo de foco en el primer interruptor al abrir
+    }
+
+    /// <summary>
+    /// Selector de idioma: «Sistema» (el de Windows, por defecto) o uno de los idiomas, con su nombre en ese idioma.
+    /// El cambio se guarda al momento y se aplica al reiniciar el contador (se ofrece hacerlo ya).
+    /// </summary>
+    private void AddLanguagePicker(string? current, Point at)
+    {
+        var chosen = current != null && L.Languages.Any(l => l.Code == current) ? current : null;
+        string NameOf(string? code) => code == null
+            ? L.F("Sistema ({0})", "System ({0})", L.Languages.FirstOrDefault(l => l.Code == L.SystemCode).Name)
+            : L.Languages.First(l => l.Code == code).Name;
+
+        // Botón píldora como los de la ventana; al pulsarlo, un menú oscuro con los idiomas.
+        var button = new PillButton
+        {
+            Text = NameOf(chosen) + "  ▾",
+            Location = at,
+            Size = new Size(172, 26),
+            Radius = 9,
+            Font = Theme.Text(8.5f, FontStyle.Bold),
+        };
+        var menu = new ContextMenuStrip
+        {
+            Renderer = new DarkMenuRenderer(),
+            ShowImageMargin = false,
+            ShowCheckMargin = false,
+            BackColor = Theme.Panel,
+            Font = Theme.Text(9f),
+            Padding = new Padding(4),
+        };
+        void AddItem(string? code)
+        {
+            var item = new ToolStripMenuItem((code == chosen ? "✓   " : "      ") + NameOf(code))
+            {
+                ForeColor = code == chosen ? Theme.Cyan : Theme.Ink,
+                Padding = new Padding(4, 3, 18, 3),
+            };
+            item.Click += (_, _) => Choose(code);
+            menu.Items.Add(item);
+        }
+        AddItem(null);
+        menu.Items.Add(new ToolStripSeparator());
+        foreach (var (code, _) in L.Languages)
+        {
+            AddItem(code);
+        }
+        button.ContextMenuStrip = menu; // también con clic derecho
+        button.Click += (_, _) => menu.Show(button, new Point(0, button.Height + 4));
+        Controls.Add(button);
+
+        void Choose(string? code)
+        {
+            if (code == chosen)
+            {
+                return;
+            }
+            chosen = code;
+            button.Text = NameOf(code) + "  ▾";
+            foreach (var item in menu.Items.OfType<ToolStripMenuItem>())
+            {
+                var mine = item.Text?.TrimStart('✓', ' ') == NameOf(code);
+                item.Text = (mine ? "✓   " : "      ") + item.Text?.TrimStart('✓', ' ');
+                item.ForeColor = mine ? Theme.Cyan : Theme.Ink;
+            }
+            _monitor.Change(c => c.Language = code);
+            if (InfoDialog.Confirm(this, L.T("Idioma", "Language"),
+                    L.T("El nuevo idioma se aplica al reiniciar el contador. Tu historial y tus ajustes se conservan.",
+                        "The new language applies when the counter restarts. Your history and settings are kept."),
+                    Array.Empty<InfoPoint>(),
+                    L.T("Reiniciar ahora", "Restart now"), L.T("Más tarde", "Later")))
+            {
+                Close();
+                _monitor.Restart();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Textos que no caben en su sitio (idiomas largos): la letra se reduce un poco, hasta 6,5 pt, en vez de cortarse.
+    /// Solo afecta a etiquetas de una línea y a botones.
+    /// </summary>
+    private static void FitTexts(Control parent)
+    {
+        foreach (Control c in parent.Controls)
+        {
+            FitTexts(c);
+            if (c is not (Label { AutoEllipsis: true } or PillButton) || string.IsNullOrEmpty(c.Text))
+            {
+                continue;
+            }
+            var font = c.Font;
+            if (c is Label && c.Height > font.Height * 1.8)
+            {
+                continue; // varias líneas: ya tiene sitio para partirse
+            }
+            var room = c.Width - (c is PillButton ? 12 : 2);
+            while (font.Size > 6.5f && TextRenderer.MeasureText(c.Text, font).Width > room)
+            {
+                font = new Font(font.FontFamily, font.Size - 0.25f, font.Style);
+            }
+            if (!ReferenceEquals(font, c.Font))
+            {
+                c.Font = font;
+            }
+        }
     }
 
     /// <summary>Lo que sí es exacto de los compañeros.</summary>

@@ -372,3 +372,44 @@ public sealed class LogoButton : Control
         g.DrawImage(Logo, dest, 0, 0, Logo.Width, Logo.Height, GraphicsUnit.Pixel, attributes);
     }
 }
+
+/// <summary>Menús desplegables con los colores de la aplicación (fondo oscuro, resaltado suave, texto claro).</summary>
+[SupportedOSPlatform("windows")]
+public sealed class DarkMenuRenderer : ToolStripProfessionalRenderer
+{
+    public DarkMenuRenderer() : base(new Colors())
+    {
+        RoundedEdges = true;
+    }
+
+    protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+    {
+        e.TextColor = e.Item.ForeColor;
+        base.OnRenderItemText(e);
+    }
+
+    protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
+    {
+        if (!e.Item.Selected)
+        {
+            return;
+        }
+        e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+        using var path = Shape.Rounded(new RectangleF(2, 1, e.Item.Width - 4, e.Item.Height - 2), 6);
+        using var fill = new SolidBrush(Theme.PanelHover);
+        e.Graphics.FillPath(fill, path);
+    }
+
+    private sealed class Colors : ProfessionalColorTable
+    {
+        public override Color ToolStripDropDownBackground => Theme.Panel;
+        public override Color MenuBorder => Theme.Line;
+        public override Color MenuItemBorder => Color.Transparent;
+        public override Color MenuItemSelected => Theme.PanelHover;
+        public override Color ImageMarginGradientBegin => Theme.Panel;
+        public override Color ImageMarginGradientMiddle => Theme.Panel;
+        public override Color ImageMarginGradientEnd => Theme.Panel;
+        public override Color SeparatorDark => Theme.Line;
+        public override Color SeparatorLight => Theme.Panel;
+    }
+}

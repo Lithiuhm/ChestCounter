@@ -130,8 +130,12 @@ public sealed class MatchRecord
 
 public sealed class Config
 {
-    /// <summary>Idioma de la interfaz. La aplicación solo está en español: se guarda por compatibilidad.</summary>
-    public string? Language { get; set; } = "es";
+    /// <summary>
+    /// Language chosen in Settings ("es", "en"…); null = the Windows language. Saved under a new name: the old key
+    /// held "es" for everyone and would force Spanish.
+    /// </summary>
+    [JsonPropertyName("UiLanguage")]
+    public string? Language { get; set; }
 
     /// <summary>Selected profile (Epic id or name of the account the player plays on); null = most recent one.</summary>
     public string? Profile { get; set; }

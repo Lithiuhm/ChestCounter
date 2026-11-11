@@ -16,7 +16,7 @@ public sealed class InfoDialog : Form
 {
     private const int W = 440, Pad = 20, TextX = 72;
 
-    private InfoDialog(string title, string intro, IReadOnlyList<InfoPoint> points, string ok, string cancel)
+    private InfoDialog(string title, string intro, IReadOnlyList<InfoPoint> points, string ok, string? cancel, bool owned)
     {
         Text = title;
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -27,8 +27,8 @@ public sealed class InfoDialog : Form
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
-        ShowInTaskbar = false;
-        StartPosition = FormStartPosition.CenterParent;
+        ShowInTaskbar = !owned; // sin ventana dueña (primer uso), que se vea en la barra de tareas
+        StartPosition = owned ? FormStartPosition.CenterParent : FormStartPosition.CenterScreen;
         Icon = AppIcon.Load();
 
         // Cabecera: icono redondo, título e introducción.
@@ -50,8 +50,8 @@ public sealed class InfoDialog : Form
         y = AddText(this, intro, Theme.Text(9f), Theme.Muted, TextX, y, W - TextX - Pad);
         y = Math.Max(y, Pad + 40) + 16;
 
-        // Puntos, dentro de una tarjeta.
-        var card = new Card { Location = new Point(Pad, y), Radius = 14, BackColor = Theme.Card };
+        // Puntos, dentro de una tarjeta (sin puntos, no hay tarjeta).
+        var card = new Card { Location = new Point(Pad, y), Radius = 14, BackColor = Theme.Card, Visible = points.Count > 0 };
         var cardW = W - 2 * Pad;
         var cy = 14;
         foreach (var p in points)
@@ -74,7 +74,7 @@ public sealed class InfoDialog : Form
         }
         card.Size = new Size(cardW, cy + 2);
         Controls.Add(card);
-        y += card.Height + 18;
+        y += points.Count > 0 ? card.Height + 18 : 6;
 
         // Botones: principal en cian a la derecha, cancelar a su izquierda.
         var okButton = new PillButton
@@ -90,25 +90,28 @@ public sealed class InfoDialog : Form
         };
         var cancelButton = new PillButton
         {
-            Text = cancel,
-            Size = new Size(110, 36),
-            Location = new Point(W - Pad - 130 - 8 - 110, y),
+            Text = cancel ?? "",
+            Size = new Size(150, 36),
+            Location = new Point(W - Pad - 130 - 8 - 150, y),
             Radius = 11,
             DialogResult = DialogResult.Cancel,
+            Visible = cancel != null,
         };
         Controls.Add(okButton);
         Controls.Add(cancelButton);
         AcceptButton = okButton;
-        CancelButton = cancelButton;
+        CancelButton = cancel != null ? cancelButton : okButton;
         ActiveControl = okButton;
         ClientSize = new Size(W, y + 36 + Pad);
     }
 
     /// <summary>Muestra el diálogo. True si se pulsa el botón principal; false si se cancela o se cierra.</summary>
-    public static bool Confirm(IWin32Window owner, string title, string intro, IReadOnlyList<InfoPoint> points, string ok, string cancel)
+    /// <param name="owner">Ventana dueña, o null si aún no hay ninguna (se centra en la pantalla).</param>
+    /// <param name="cancel">Texto del segundo botón, o null para mostrar solo el principal.</param>
+    public static bool Confirm(IWin32Window? owner, string title, string intro, IReadOnlyList<InfoPoint> points, string ok, string? cancel)
     {
-        using var dialog = new InfoDialog(title, intro, points, ok, cancel);
-        return dialog.ShowDialog(owner) == DialogResult.OK;
+        using var dialog = new InfoDialog(title, intro, points, ok, cancel, owner != null);
+        return (owner != null ? dialog.ShowDialog(owner) : dialog.ShowDialog()) == DialogResult.OK;
     }
 
     protected override void OnHandleCreated(EventArgs e)

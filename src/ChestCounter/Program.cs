@@ -128,7 +128,7 @@ internal static class Program
         var config = reset ? null : store.LoadConfig();
         var firstRun = config == null;
         config ??= new Config();
-        config.Language = L.Code;
+        L.Use(config.Language); // idioma elegido en Ajustes; sin elegir, el de Windows
 
         if (demosArg != null) config.DemosFolder = demosArg;
         var defaultDemos = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FortniteGame", "Saved", "Demos");
@@ -185,27 +185,28 @@ internal static class Program
         // ---- Primer uso: aviso de las repeticiones y, si hay replays, si contarlos -------------------------------------------
         if (firstRun)
         {
-            MessageBox.Show(
-                L.Big("intro", "Este contador cuenta tus cofres a partir de los replays de Fortnite.\n\n" +
-                    "Importante: en Fortnite activa Ajustes → Juego → Replays → Grabar replays.\n" +
-                    "Sin eso, Fortnite no guarda replays y no hay nada que contar.",
-                    "This counter counts your chests from the Fortnite replays.\n\n" +
-                    "Important: in Fortnite turn on Settings → Game → Replays → Record Replays.\n" +
-                    "Without it, Fortnite saves no replays and there is nothing to count."),
-                "ChestCounter", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
+            // Bienvenida (con el diseño de la app): grabar replays y, si ya hay replays, si contarlos.
             var existing = tracker.UnprocessedFiles().Where(f => ReplayHeaderProbe.IsLive(f.FullName) != true).ToList();
+            var points = new List<InfoPoint>
+            {
+                new("!", Theme.Amber, L.T("Activa «Grabar replays» en Fortnite", "Turn on \"Record Replays\" in Fortnite"),
+                    L.T("Ajustes → Juego → Replays → Grabar replays. Sin eso, Fortnite no guarda replays y no hay nada que contar.",
+                        "Settings → Game → Replays → Record Replays. Without it, Fortnite saves no replays and there is nothing to count.")),
+            };
             if (existing.Count > 0)
             {
-                var count = L.Count(existing.Count, "replay", "replays", "replay", "replays");
-                var answer = MessageBox.Show(
-                    L.F("Hay {0} en tu PC. ¿Contarlos también?\n\nSí: se analizan ahora.   No: solo cuentan tus próximas partidas.",
-                        "There are {0} on your PC. Count them too?\n\nYes: they are analyzed now.   No: only your next matches count.", count),
-                    "ChestCounter", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (answer == DialogResult.No)
-                {
-                    tracker.MarkSkipped(existing);
-                }
+                points.Add(new InfoPoint("↺", Theme.Cyan,
+                    L.F("Ya hay {0} en tu PC", "There are already {0} on your PC", L.Count(existing.Count, "replay", "replays", "replay", "replays")),
+                    L.T("Puedes contarlos ahora o empezar solo con tus próximas partidas.", "You can count them now or start with your next matches only.")));
+            }
+            var countThem = InfoDialog.Confirm(null, L.T("Bienvenido a ChestCounter", "Welcome to ChestCounter"),
+                L.T("Cuenta tus cofres de Fortnite a partir de tus replays.", "Counts your Fortnite chests from your replays."),
+                points,
+                existing.Count > 0 ? L.T("Contarlos", "Count them") : L.T("Empezar", "Start"),
+                existing.Count > 0 ? L.T("Solo las próximas", "Next matches only") : null);
+            if (existing.Count > 0 && !countThem)
+            {
+                tracker.MarkSkipped(existing);
             }
             // "Abrir con Fortnite" queda desactivado: se activa en Ajustes.
         }
@@ -248,10 +249,12 @@ internal static class Program
         monitor.Stop();
 
         // Nueva versión instalada: arranca el exe nuevo.
-        if (monitor.RestartAfterUpdate && AppInfo.ExePath is { } newExe)
+        // También tras cambiar el idioma en Ajustes (sin "--after-update": no hay versión nueva que anunciar).
+        if ((monitor.RestartAfterUpdate || monitor.RestartRequested) && AppInfo.ExePath is { } newExe)
         {
             try { instance.ReleaseMutex(); } catch { }
-            var restartArgs = string.Join(" ", args.Where(a => a != "--after-update").Select(a => a.Contains(' ') ? $"\"{a}\"" : a).Append("--after-update"));
+            var kept = args.Where(a => a != "--after-update").Select(a => a.Contains(' ') ? $"\"{a}\"" : a);
+            var restartArgs = string.Join(" ", monitor.RestartAfterUpdate ? kept.Append("--after-update") : kept);
             Process.Start(new ProcessStartInfo(newExe, restartArgs) { UseShellExecute = true })?.Dispose();
         }
         return 0;

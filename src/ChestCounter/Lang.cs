@@ -3,8 +3,8 @@ using System.Globalization;
 namespace ChestCounter;
 
 /// <summary>
-/// Idioma de la aplicación. Se elige según el idioma de Windows entre los soportados (ver <see cref="Supported"/>);
-/// si no es ninguno, inglés. Los textos se escriben en línea: <c>L.T("español", "English")</c>; las traducciones
+/// Idioma de la aplicación. Por defecto el de Windows entre los soportados (ver <see cref="Supported"/>; si no es
+/// ninguno, inglés); se puede elegir otro en Ajustes. Los textos se escriben en línea: <c>L.T("español", "English")</c>; las traducciones
 /// a los demás idiomas están en <see cref="Translations"/>, indexadas por el texto español.
 /// Los nombres guardados en data.json (tipos de cofre, objetos del tesoro) siguen en francés por compatibilidad y se traducen al mostrarlos (<see cref="Name"/>).
 /// </summary>
@@ -30,22 +30,47 @@ public static class L
         ["ja"] = "ja-JP",
     };
 
+    /// <summary>Idiomas que se pueden elegir en Ajustes, con su nombre en ese mismo idioma.</summary>
+    public static IReadOnlyList<(string Code, string Name)> Languages { get; } =
+    [
+        ("es", "Español"), ("en", "English"), ("pt", "Português (Brasil)"), ("ru", "Русский"), ("fr", "Français"),
+        ("de", "Deutsch"), ("it", "Italiano"), ("pl", "Polski"), ("tr", "Türkçe"), ("ja", "日本語"),
+    ];
+
     /// <summary>
     /// Código del idioma actual ("es", "en", "pt", "ru", "fr", "de", "it", "pl", "tr" o "ja").
-    /// Para probar: la variable CHESTCOUNTER_LANG fuerza el idioma. Sin ella, manda Windows.
+    /// Por defecto el de Windows; <see cref="Use"/> aplica el elegido en Ajustes. Para probar: la variable
+    /// CHESTCOUNTER_LANG fuerza el idioma por encima de todo.
     /// </summary>
-    public static string Code { get; } = Detect();
+    public static string Code { get; private set; } = Detect();
 
     /// <summary>True cuando la interfaz va en inglés.</summary>
     public static bool En => Code == "en";
 
-    public static CultureInfo Culture { get; } = CultureInfo.GetCultureInfo(Cultures[Code]);
+    public static CultureInfo Culture { get; private set; } = CultureInfo.GetCultureInfo(Cultures[Code]);
 
     /// <summary>
     /// Posición del idioma actual en las filas de <see cref="Translations"/>: 0 = pt … 7 = ja.
     /// Vale -2 para español y -1 para inglés (esos textos ya están en el código).
     /// </summary>
-    private static readonly int Slot = Array.IndexOf(Supported, Code) - 2;
+    private static int Slot = Array.IndexOf(Supported, Code) - 2;
+
+    /// <summary>Idioma de Windows (o el forzado con CHESTCOUNTER_LANG), sin tener en cuenta lo elegido en Ajustes.</summary>
+    public static string SystemCode => Detect();
+
+    /// <summary>
+    /// Aplica el idioma elegido en Ajustes (null o desconocido = el de Windows). Se llama al arrancar, antes de crear
+    /// las ventanas: los textos se leen al construirlas, así que un cambio necesita reiniciar el contador.
+    /// </summary>
+    public static void Use(string? code)
+    {
+        var chosen = Environment.GetEnvironmentVariable("CHESTCOUNTER_LANG") is { Length: > 0 } || code == null || Array.IndexOf(Supported, code) < 0
+            ? Detect()
+            : code;
+        Code = chosen;
+        Culture = CultureInfo.GetCultureInfo(Cultures[chosen]);
+        Slot = Array.IndexOf(Supported, chosen) - 2;
+    }
 
     private static string Detect()
     {

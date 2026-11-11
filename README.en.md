@@ -6,173 +6,191 @@
 
 [![version](https://img.shields.io/github/v/release/xdoofy92/ChestCounter?style=flat-square&label=version&color=e8b04b)](../../releases/latest) [![downloads](https://img.shields.io/github/downloads/xdoofy92/ChestCounter/total?style=flat-square&label=downloads&color=e8b04b)](../../releases) ![Windows 10 | 11](https://img.shields.io/badge/Windows-10%20%7C%2011-3a7bd5?style=flat-square) [![license](https://img.shields.io/github/license/xdoofy92/ChestCounter?style=flat-square&label=license&color=555)](LICENSE)
 
-**Counts every chest you open in Fortnite, match after match, with an in-game overlay.**
+**Counts every chest you open in Fortnite, match after match: window, report, in-game overlay and your team's chests.**
 
-<img src="docs/overlay-espera.png" alt="Overlay between two matches" width="300">&nbsp;&nbsp;<img src="docs/overlay-en-curso.png" alt="Overlay during a match" width="300">
+<img src="docs/main.png" alt="Main window" width="49%">&nbsp;<img src="docs/report-hero.png" alt="Report" width="49%">
 
-[**⬇ Download ChestCounter.exe**](../../releases/latest) · Windows 10 / 11 · free · no install
+[**⬇ Download ChestCounter.exe**](../../releases/latest) · Windows 10 / 11 · free · no install · 10 languages
 
 </div>
 
 ---
 
-Chest Counter reads the replays Fortnite saves after each match and keeps a running count of the chests you opened, plus the **treasure hunt treasures** your chests gave you. An always-on-top overlay shows your totals while you play, and a detailed report keeps your whole history.
+ChestCounter reads the replays Fortnite saves of every match and keeps count of the chests you open, the **treasure hunt treasures** and, if you want, your **teammates'** chests. Everything is saved on your PC: even when Fortnite deletes the replays, your history is kept.
 
-> It counts the chests **you opened**. It does not show where chests are on the map.
+- **Main window**: total, last match, today, best day, average, best match, treasures, 7-day chart and your team.
+- **Report** in your browser, with tabs: overview, chests, treasures, matches and teammates.
+- **Overlay** on top of the game and an **OBS page**.
+- **Teammates**: who you play with, wins together, each one's chests per match and a leaderboard.
+- **Safe**: it only reads replay files; it never touches the game or its memory.
 
-## How it works (and why it is safe)
-
-Fortnite can record a **replay file** of every match on your PC. Chest Counter reads these files once the match is over, and nothing else.
-
-- ✅ **Only reads replay files**: the `.replay` files Fortnite writes to `%LOCALAPPDATA%\FortniteGame\Saved\Demos`. They are opened read-only and never modified.
-- ✅ **No game modification**: nothing in the Fortnite installation folder is touched, no file is added or patched.
-- ✅ **No access to the game's memory**: the tool never reads, writes or injects anything into the Fortnite process. It does not interact with the running game at all.
-- ✅ **No data sent anywhere**: no login, no Epic account access, no telemetry. The only network access is the check for a new version on GitHub, which can be turned off in the settings.
-- ✅ **Lightweight**: runs at low priority (and in "efficiency mode" on Windows 11), sleeps between matches, and the overlay is only redrawn when a number changes.
-
-> [!IMPORTANT]
-> **Replays must be turned on in Fortnite**: *Settings → Game → Replays → Record Replays: **On*** (and *Large Team modes* if you play them). Without replays, the tool has nothing to read.
-
-Because Fortnite only writes the replay's decryption key when the match ends, chests are counted **a few seconds after each match**, not during it. While you play, the overlay shows **● MATCH IN PROGRESS**.
+> It counts the chests **you** opened (and those your team was seen opening). It does not show where chests are on the map.
 
 ## Getting started
 
 1. Download **[`ChestCounter.exe`](../../releases/latest)**. That single file is all you need.
-2. Turn on replays in Fortnite (see above).
+2. In Fortnite turn on *Settings → Game → Replays → **Record Replays*** (and *Large Team Modes* if you play them). Without replays there is nothing to read.
 3. Run `ChestCounter.exe`.
    > Windows may show *"Windows protected your PC"* because the exe is not signed. Click *More info → Run anyway*.
-4. A short setup (Yes / No dialogs) checks your **replays folder** and offers to count the **replays already on your PC**. **Open with Fortnite** is off: turn it on in **Settings** if you want it. The language follows Windows: **Spanish** if Windows is in Spanish, **English** otherwise.
+4. The welcome screen reminds you about replays and, if there are already replays on your PC, lets you **count them** or start with **your next matches only**.
 
-<p align="center"><img src="docs/setup.png" alt="First launch setup" width="760"></p>
+<p align="center"><img src="docs/setup.png" alt="First-run welcome" width="440"></p>
 
-If you count your existing replays, a progress bar runs in the window while the report opens in your browser and fills in live.
-
-
-5. Keep the window open (you can minimize it) while you play. A few seconds after each match, its chests are added:
-
-<p align="center"><img src="docs/main.png" alt="Main window" width="820"></p>
+5. Leave the window open (you can minimize it) while you play. During the match the counter reads the replay being recorded and adds the chests **live**; when the match ends they are confirmed.
 
 > [!TIP]
-> Matches played while the counter is closed are counted the next time you open it, but Fortnite only keeps a limited number of unsaved replays and deletes the oldest ones. To never have to think about it, turn on **Open with Fortnite** in the settings (off by default).
+> Matches played while the counter is closed are counted next time you open it, as long as Fortnite has not deleted those replays (it keeps a limited number). To not think about it, turn on **Open with Fortnite** in Settings.
 
-## Open with Fortnite
+## The main window
 
-When this option is on, a tiny invisible process starts with Windows and checks every few seconds whether Fortnite is running. It reads nothing from the game: it only looks at the list of running programs. When Fortnite starts, it opens the counter (minimized, the game keeps the screen). When Fortnite closes, the counter counts your last match and closes itself 30 seconds later; click the notice in its window to keep it open. Turn it off at any time in the settings (the **Settings** button): the invisible process stops and is removed from Windows startup.
+<p align="center"><img src="docs/main.png" alt="Main window" width="592"></p>
+
+- **Top left**: your chest total, the last match (or the current one, in green, while you play) and the session.
+- **Right**: today, best day, average, best match, history (saved matches and since when) and treasures.
+- **Last 7 days**: a chart with each day's chests.
+- **Team** (with *Teammates* on): your chests and each teammate's in the current or last match, the team total and their share.
+- **Buttons**: **Overlay** (green dot = on), **Report** and **Settings**. With several accounts on the PC, a profile picker shows up at the top.
+
+The window can be resized and maximized: everything grows in proportion.
+
+## The report
+
+`report.html` opens in your browser (the **Report** button) and refreshes by itself. It always starts on **Overview**; the tabs are at the top:
+
+| Tab | What it shows |
+|---|---|
+| **Overview** | Chest total, session, Victory Royales (and %), top 10s, matches, average, best match, best day, treasures, 30-day chart and the latest matches. |
+| **Chests** | By chest type, other containers (ammo boxes, food boxes, loot cannons; shows whether they count) and a **by game mode** table. |
+| **Treasures** | How many, from golden chests, with a certain source, % of matches with a treasure, where they come from and the list with the exact moment. |
+| **Matches** | The latest 100: mode, placement (🏆 win, top 10 in green), eliminations, chests, treasures and, with teammates, the team. |
+| **Teammates** | Team chests, **top teammates**, the **per match** table and all your teammates (see below). |
+
+<p align="center"><img src="docs/report-companeros.png" alt="Teammates tab of the report" width="820"></p>
+
+<details>
+<summary><b>See the other tabs</b></summary>
+
+<p align="center"><img src="docs/report-resumen.png" alt="Overview" width="820"></p>
+<p align="center"><img src="docs/report-cofres.png" alt="Chests" width="820"></p>
+<p align="center"><img src="docs/report-tesoros.png" alt="Treasures" width="820"></p>
+<p align="center"><img src="docs/report-partidas.png" alt="Matches" width="820"></p>
+
+</details>
+
+It uses the window's colors (dark, or light when Windows is in light mode) and adapts to phones. The screenshots are in Spanish; the report follows the app's language.
+
+## Teammates and team
+
+Turn it on in **Settings → Teammates in the report** (off by default). You get:
+
+- **Exact**: who you play with, matches together and wins together.
+- **Approximate**: each teammate's chests. They come from **your** replay, and Fortnite only records what happens **within 1,087 m of you** (measured on real replays). If a teammate goes further, their chests are not counted: they are a **minimum (≥)**.
+- **Team chests**: you + your teammates, in total and per match, with each one's share; handy when you hunt for a random item that drops from chests.
+- **Top teammates**: most chests seen, best average, best single match and most wins together.
+
+With **Add their chests to your total** (also off), your total, average, records and overlay include your team's chests. Your history does not change: turning it off shows only yours again.
 
 ## The overlay
 
-- **Big numbers**: your **total** chests (gold) and, in the box, the chests of the **previous** match (or the **current** one while you play).
-- **Session**: chests since the tool was started. **Avg.**: average chests per match in this session.
-- **Previous** (only during a match): chests of your previous match. **Treasures**: treasures found so far.
-- During a match, the **MATCH IN PROGRESS** badge appears and the box shows "…" until the chests can be read; then it switches to **LIVE** with the chests of the current match.
+<p align="center"><img src="docs/overlay-espera.png" alt="Overlay between two matches" width="300">&nbsp;&nbsp;<img src="docs/overlay-en-curso.png" alt="Overlay during a match" width="300"></p>
 
-To see it over the game, set Fortnite to **Windowed Fullscreen** (*Settings → Video → Window Mode*): in exclusive fullscreen, Windows cannot draw anything on top of the game. The overlay starts **turned off**: turn it on with the **Overlay** button (green dot = on, red = off) or with Ctrl+Shift+O.
+- **Big numbers**: your chest **total** and, in the box, the **previous** match (or the **current** one, live, while you play).
+- **Session**, session **average**, **previous** (during a match) and **treasures**.
 
-Streaming? While the counter is open, the same overlay is served at **http://localhost:7373/** (copy it from **Settings**). In OBS, add a **browser source** with that address: transparent background, updates by itself.
+To see it over the game, set Fortnite to **Windowed Fullscreen** (*Settings → Video → Window Mode*): in exclusive fullscreen Windows cannot draw on top. The overlay starts **off**: turn it on with the **Overlay** button or Ctrl+Shift+O.
 
-## Shortcuts
+Streaming? While the counter is open, the same overlay is at **http://localhost:7373/** (copy it from **Settings**). In OBS, add a **browser source** with that address: transparent background, refreshes by itself.
+
+### Shortcuts
 
 | Shortcut | What it does |
 |---|---|
 | **Ctrl+Shift+O** | Show / hide the overlay. Works anywhere, even in game. |
-| **Ctrl+Shift+L** | Lock / unlock the overlay. Works anywhere. **Locked**: the mouse goes through it and it cannot move (best in game). **Unlocked**: hold the left mouse button to move it. |
+| **Ctrl+Shift+L** | Lock / unlock the overlay. **Locked**: clicks go through and it does not move. **Unlocked**: drag it with the left button. |
 | Right-click on the overlay | Hide it. |
-| Padlock on the overlay | Lock it. |
 
-If another program already uses Ctrl+Shift+O or Ctrl+Shift+L, the tool shows a notice and the overlay keeps working with its window button.
+## Settings
 
-### Main window
+<p align="center"><img src="docs/settings.png" alt="Settings" width="592"></p>
 
-The window has three buttons: **Overlay** (show or hide the overlay; green dot = on, red = off), **Report** (opens `report.html`) and **Settings**. The installed version is shown in the window title. When a new version is available, an install button appears; when Fortnite closes, a notice lets you keep the counter open (click it). The profile selector appears when there are several accounts.
+- **Language**: the Windows language by default; at the top you can pick another (Spanish, English, Portuguese, Russian, French, German, Italian, Polish, Turkish or Japanese).
+- **Open with Fortnite**: a small invisible process opens the counter (minimized) when Fortnite starts and closes it 30 s after Fortnite closes. It reads nothing from the game: it only looks at the list of running programs.
+- **Open the report at startup** (off by default).
+- **Teammates in the report** and **Add their chests to your total** (see above).
+- **Also count as a chest**: ammo boxes, food boxes and loot cannons (off; nothing is deleted when you change it). Chests you **destroy** are always counted.
+- **Chests before the counter**: an estimate added to your total.
+- **Updates**, **overlay for OBS**, **replays folder** and **Reset statistics** (with a backup).
 
-The window can be **resized and maximized**: everything grows in proportion (cards, figures and chart) and no text gets cut off; if a figure does not fit its card, its font shrinks a little.
+## How it works (and why it is safe)
 
-In **Settings** you can open with Fortnite, open the report at startup, show your **teammates** in the window and the report and **add their chests to your total** (both off by default), choose whether **ammo boxes, food boxes and loot cannons** also count as chests (off by default), choose the updates, type the **chests opened before the counter** (an estimate added to your total), copy the **overlay address for OBS** and change the replays folder. The installed version is shown at the bottom.
+Fortnite can record a **replay file** of every match on your PC. ChestCounter reads those files and nothing else.
 
-<p align="center"><img src="docs/settings.png" alt="Settings" width="400"></p>
-
-From top to bottom you will see: the total chests, the last match, the session, today, the best day, the average, the best match, the **History** (matches stored and since when), the treasures and the chart of the last 7 days.
-
-## The report
-
-`report.html` opens in your browser and refreshes by itself. It uses the same colors as the window (dark, or light when Windows is in light mode) and adapts to phones. It has tabs at the top (**Overview**, **Chests**, **Treasures**, **Matches** and, if you turn it on, **Teammates**); the chosen one is remembered when the page reloads:
-
-- **Key figures:** the total chests in large type, with this session's chests and your Victory Royales; next to it, matches, average per match, best match and treasures.
-- **Chests per day:** chart of the last 30 days with a scale, the daily average (dashed line) and today in cyan. Hover a bar to see the day and its chests.
-- **By chest type** and **where the treasures come from**, with a proportion bar on each row. Ammo boxes, food boxes and loot cannons are listed apart, showing whether they are added to the total.
-- **By game mode:** matches, average, best, chests and wins for each mode.
-- **Treasures obtained:** each treasure with its match, the moment and the source chest.
-- **Latest matches** (the 100 most recent): mode, placement (🏆 victory in gold, top 10 in green), chests and treasures.
-- **Teammates** (if you turn it on in Settings): who you play with, matches together, wins, your chests in those matches and the chests they were seen opening. The latter are **not exact**: they come from your replay, and Fortnite only records what happens within 1,087 m of you; if a teammate goes further, their chests stop being counted. They are a minimum (≥). It includes the **team chests** (you + your teammates) in total and per match, with each teammate's share; the main window shows the team of the current or last match. They are only added to your figures if you turn on "Add their chests to your total".
-
-<p align="center"><img src="docs/report.png" alt="Report" width="820"></p>
+- ✅ **Only reads replay files**: the `.replay` files in `%LOCALAPPDATA%\FortniteGame\Saved\Demos`, read-only.
+- ✅ **No game modification**: the Fortnite installation folder is never touched.
+- ✅ **No access to the game's memory**: it never reads, writes or injects anything into the Fortnite process.
+- ✅ **No data sent anywhere**: no login, no Epic account, no telemetry. The only network access is checking GitHub for new versions (can be turned off).
+- ✅ **Lightweight**: low priority ("efficiency mode" on Windows 11) and it sleeps between matches.
 
 ## Treasures
 
-- **★★ Golden chest (certain).** When a chest gives a treasure hunt prize (cosmetic, music track, loading screen, vehicle…), the server spawns a golden chest carrying the **prize id**. The tool reads it from the replay.
-- **★ Every treasure received (exact moment).** Each treasure you receive is recorded with its exact time and the chest it came from; it only counts if that chest is **yours** (treasures shared by a teammate are not counted). When the item can be identified, it is named; otherwise it shows as **"Treasure gizmo"** (golden firework, portable extractor, locators, extraction accelerator), whose exact type is not in the replay.
-- A treasure that came from something other than a chest (loot cannon, ammo box…) is highlighted with ⚑ in the report.
+- **★★ Golden chest (certain).** When a chest gives a treasure hunt prize (cosmetic, music track, vehicle…), the server spawns a golden chest carrying the **prize id**, which the tool reads from the replay.
+- **★ Every treasure received (exact moment)**, with the chest it came from; it only counts if that chest is **yours**. When the item cannot be identified it shows as **"Treasure gizmo"**.
+- A treasure obtained from something other than a chest (loot cannon, ammo box…) is flagged with ⚑.
 
-The game only sends prize ids, not names: `treasures.json` maps them to names and can be edited with Notepad. New ids are added automatically and the tool tells you when one needs a name.
+The game only sends prize ids: `treasures.json` names them and can be edited with Notepad.
 
 ## Profiles (several accounts on one PC)
 
-The replays saved on a PC are normally those of its player, so there is **no name to type**: the tool counts the player who recorded each replay. If replays from several accounts are found, each account gets its own profile with its own statistics. The **Profile** text at the top right of the window then becomes a **drop-down list** to choose the account shown (in the window, the overlay, OBS and the report). A match played on another account is saved in that account's profile, never lost.
+There is no name to type: the player who recorded each replay is counted. With replays from several accounts, each one gets its profile and a **drop-down** at the top right picks which one is shown.
 
 ## Updates
 
-At startup, the counter checks GitHub for a new version. When there is one, it is downloaded, checked and the counter restarts between two matches: your history and settings are kept. In the settings (the **Settings** button) you can choose between *installed automatically* (default, only between two matches), *offered* or *off* (no network access at all).
+At startup, the counter checks GitHub for a new version and, by default, **installs it by itself** between two matches (your history and settings are kept). In Settings you can choose *Ask* or *Never* (no network access).
 
 ## Your data
 
-Everything is stored in `%APPDATA%\ChestCounter`:
+Everything is saved in `%APPDATA%\ChestCounter`. **Your history does not depend on the replays**: each match (with its chests, treasures and teammates) is saved to `data.json` as soon as it is read, and every statistic comes from there.
 
-| File | Content |
+| File | Contents |
 |---|---|
-| `report.html` | The report (opens in your browser). |
-| `overlay.html` | File copy of the overlay (for OBS, prefer http://localhost:7373/). |
+| `data.json` | Your whole history. **Back it up** if you change PC. |
+| `report.html` | The report. |
 | `matches.csv` | One line per match, for Excel or Google Sheets. |
-| `data.json` | Your full history. **Back it up** if you change PC. |
-| `config.json` | Profile, replays folder, overlay position and settings. |
+| `config.json` | Settings, profile, replays folder and overlay position. |
 | `treasures.json` | Names of the treasure hunt prizes. |
-| `errors.log` | Details of unreadable replays, to attach to a bug report. |
-
-Fortnite deletes old replays, but **your history is not deleted**: each match is saved in `data.json` as soon as it is counted, and the report and statistics come from there. So even when the replay no longer exists, the match stays in your totals.
-
-To start over: run `ChestCounter.exe --reset-config`, or delete that folder.
+| `overlay.html` | Copy of the overlay (for OBS, http://localhost:7373/ is better). |
+| `errors.log` | Replays that could not be read, to attach to a bug report. |
 
 ## FAQ
 
-**Nothing is counted.** Check that replays are turned on in Fortnite, and that the tool is running when the match ends. The window tells you if the replays folder is missing or empty.
+**Nothing is counted.** Check that replays are on in Fortnite. The window tells you if the replays folder is missing or empty.
 
-**Are ammo boxes counted?** Not unless you turn it on. Ammo boxes, food boxes and loot cannons are listed separately in the report; you can add each one to the total in **Settings → Also count as a chest** (nothing is deleted: turning it off leaves them out again). Chests you **destroy** instead of opening are always counted.
+**Why are my teammates' chests low?** Only those opened within 1,087 m of you are seen. It is a minimum, not their total.
 
-**How do I start from zero?** In **Settings → Reset statistics…**. The whole history is deleted (with a confirmation and a `data-backup-….json` copy in your data folder) and only the next matches are counted.
+**How do I start over?** **Settings → Reset statistics…** (with confirmation and a `data-backup-….json` backup).
 
-**Creative modes?** Only Battle Royale matches are counted; other modes are skipped.
+**Creative modes?** Only Battle Royale matches are counted.
 
-**"Cannot read this replay".** A Fortnite update can change the replay format; the parser then needs an update. Matches already counted are kept. Please [open an issue](../../issues) and attach `errors.log` (in `%APPDATA%\ChestCounter`).
-
-**Already open?** Only one counter can run at a time: launching it again just tells you it is already open.
+**"Cannot read this replay".** A Fortnite update may change the format. Matches already counted are kept. Open an [issue](../../issues) and attach `errors.log`.
 
 **Can a match be counted twice?** No, even if you rename or save the replay.
 
 ## Command line options
 
 ```
-ChestCounter.exe --demos <folder>    other replays folder
-ChestCounter.exe --data <folder>     other data folder
-ChestCounter.exe --once              analyze the finished replays, then quit
-ChestCounter.exe --reset-config      run the setup again
-ChestCounter.exe --overlay-preview <file.png>   save previews of the overlay, then quit
+ChestCounter.exe --demos <folder>   another replays folder
+ChestCounter.exe --data <folder>    another data folder
+ChestCounter.exe --once             analyze the finished replays and quit
+ChestCounter.exe --reset-config     run the first-time setup again
+ChestCounter.exe --overlay-preview <file.png>   save overlay previews and quit
 ```
 
 ## Building from source
 
-Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (Windows x64), then double-click **`build.bat`**: the exe is written to `dist\ChestCounter.exe`. The GitHub Actions workflow builds the exe on every push and attaches it to a release when a `v*` tag is pushed.
+Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (Windows x64) and double-click **`build.bat`**: the exe goes to `dist\ChestCounter.exe`. GitHub Actions builds the exe on every push and publishes it when a `v*` tag is pushed.
 
 ## License and credits
 
-[MIT](LICENSE). Replay parsing is based on [FortniteReplayDecompressor](https://github.com/Shiqan/FortniteReplayDecompressor) by Shiqan (MIT), slightly modified: see [`lib/PATCHES.md`](lib/PATCHES.md).
+[MIT](LICENSE). Replay parsing is based on [FortniteReplayDecompressor](https://github.com/Shiqan/FortniteReplayDecompressor) by Shiqan (MIT), lightly modified: see [`lib/PATCHES.md`](lib/PATCHES.md).
 
-This project is not affiliated with, endorsed by or sponsored by Epic Games. Fortnite is a trademark of Epic Games, Inc.
+This project is not affiliated with, endorsed or sponsored by Epic Games. Fortnite is a registered trademark of Epic Games, Inc.
