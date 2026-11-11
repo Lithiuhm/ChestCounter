@@ -296,6 +296,24 @@ public static class ReportWriter
         .mate .st b{display:block;font-size:20px;line-height:1.2;font-variant-numeric:tabular-nums}
         .mate .st b small{font-size:12px;font-weight:600;color:var(--muted);margin-right:2px}
         .mate .st span{display:block;font-size:11.5px;color:var(--muted);line-height:1.35}
+        .boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+        .board{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px 12px;box-shadow:var(--shadow);min-width:0}
+        .board h3{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+        .board ol{list-style:none;margin:0;padding:0}
+        .board li{display:grid;grid-template-columns:22px 26px minmax(0,1fr) auto;align-items:center;gap:2px 8px;padding:7px 0;border-bottom:1px solid var(--line)}
+        .board li:last-child{border-bottom:none}
+        .board .rk{font-size:12px;font-weight:700;color:var(--faint);text-align:center;font-variant-numeric:tabular-nums}
+        .board .rk.medal{font-size:16px}
+        .board .who2{display:flex;flex-direction:column;min-width:0}
+        .board .who2 .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .board .who2 .sub{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .board li b{font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
+        .board li b small{font-size:11px;font-weight:600;color:var(--muted);margin-right:2px}
+        .board li.first b{color:var(--amber);font-size:17px}
+        .board .bar{grid-column:3/-1;height:4px;border-radius:2px;background:var(--bg2);overflow:hidden}
+        .board .bar i{display:block;height:100%;background:var(--cyan);border-radius:2px}
+        .board li.first .bar i{background:var(--amber)}
+        .bfoot{margin-top:8px;font-size:12px;color:var(--muted)}
         .mates-line{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:5px}
         .chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px 2px 3px;border-radius:99px;background:var(--bg2);font-size:12px;white-space:nowrap;max-width:100%}
         .matches .chip{padding-left:9px}
@@ -705,8 +723,8 @@ public static class ReportWriter
         string Pct(int part, int whole) => whole > 0 ? (100.0 * part / whole).ToString("0", Loc) + " %" : "—";
         sb.Append($"""
             <div class="callout"><span class="ic">i</span><div>{L.Big("teammatesNote",
-                "Los cofres de tus compañeros no son exactos: salen de tu replay, y Fortnite solo graba lo que pasa cerca de ti. Si un compañero se aleja demasiado, sus cofres dejan de contarse. Son un mínimo, no su total. «Tus cofres» son los tuyos en esas mismas partidas, para comparar.",
-                "Your teammates' chests are not exact: they come from your replay, and Fortnite only records what happens near you. If a teammate goes too far away, their chests stop being counted. They are a minimum, not their total. \"Your chests\" are yours in those same matches, for comparison.")}</div></div>
+                "Los cofres de tus compañeros no son exactos: salen de tu replay, y Fortnite solo graba lo que pasa a menos de 1.087 m de ti. Si un compañero se aleja más, sus cofres no se cuentan. Son un mínimo, no su total. «Tus cofres» son los tuyos en esas mismas partidas, para comparar.",
+                "Your teammates' chests are not exact: they come from your replay, and Fortnite only records what happens within 1,087 m of you. If a teammate goes further, their chests are not counted. They are a minimum, not their total. \"Your chests\" are yours in those same matches, for comparison.")}</div></div>
             """);
         if (all.Count == 0)
         {
@@ -729,6 +747,50 @@ public static class ReportWriter
               <div class="mini-kpi"><b><small>≥</small>{(teamAll > 0 ? (100.0 * teamMates / teamAll).ToString("0", Loc) : "0")} %</b><span>{L.T("aportan tus compañeros", "from your teammates")}</span></div>
             </div></section>
             """);
+
+        // Top de compañeros: clasificaciones de 5 puestos (cofres vistos, media, récord y victorias juntos).
+        var medals = new[] { "🥇", "🥈", "🥉" };
+        void Board(StringBuilder b, string title, string? foot, List<(string Key, string Name, double Value, string Text, string Sub)> items)
+        {
+            if (items.Count == 0)
+            {
+                return;
+            }
+            var max = Math.Max(0.0001, items.Max(i => i.Value));
+            b.Append($"<div class=\"board\"><h3>{title}</h3><ol>");
+            for (var i = 0; i < items.Count; i++)
+            {
+                var it = items[i];
+                var rank = i < medals.Length ? $"<span class=\"rk medal\">{medals[i]}</span>" : $"<span class=\"rk\">{i + 1}</span>";
+                var w = (100.0 * it.Value / max).ToString("0.##", CultureInfo.InvariantCulture);
+                b.Append($"<li{(i == 0 ? " class=\"first\"" : "")}>{rank}<span class=\"av sm-av\" style=\"background:{Tone(it.Key)}\">{Initial(it.Name)}</span>"
+                    + $"<span class=\"who2\"><span class=\"nm\" title=\"{H(it.Name)}\">{H(it.Name)}</span><span class=\"sub\">{it.Sub}</span></span><b>{it.Text}</b>"
+                    + $"<span class=\"bar\"><i style=\"width:{w}%\"></i></span></li>");
+            }
+            b.Append("</ol>");
+            if (foot != null)
+            {
+                b.Append($"<div class=\"bfoot\">{foot}</div>");
+            }
+            b.Append("</div>");
+        }
+        string Games(int n) => L.Count(n, "partida", "partidas", "match", "matches");
+        var minAvg = all.Count(r => r.Matches >= 3) >= 3 ? 3 : 2;
+        var boards = new StringBuilder();
+        Board(boards, L.T("Más cofres vistos", "Most chests seen"), null, all.OrderByDescending(r => r.Chests).ThenByDescending(r => r.Matches).Take(5)
+            .Select(r => (r.Key, r.Name, (double)r.Chests, $"<small>≥</small>{N(r.Chests)}", Games(r.Matches))).ToList());
+        Board(boards, L.T("Mejor media por partida", "Best average per match"),
+            L.F("Tu media en partidas en equipo: {0}", "Your average in team matches: {0}", Avg(teamMine, teamMatches.Count)),
+            all.Where(r => r.Matches >= minAvg).OrderByDescending(r => (double)r.Chests / r.Matches).Take(5)
+                .Select(r => (r.Key, r.Name, (double)r.Chests / r.Matches, $"<small>≥</small>{((double)r.Chests / r.Matches).ToString("0.0", Loc)}", Games(r.Matches))).ToList());
+        Board(boards, L.T("Récord en una partida", "Best single match"), null, all.Where(r => r.Best > 0).OrderByDescending(r => r.Best).ThenByDescending(r => r.Matches).Take(5)
+            .Select(r => (r.Key, r.Name, (double)r.Best, $"<small>≥</small>{N(r.Best)}", L.T("cofres en una partida", "chests in one match"))).ToList());
+        Board(boards, L.T("Más victorias juntos", "Most wins together"), null, all.Where(r => r.Wins > 0).OrderByDescending(r => r.Wins).ThenBy(r => r.Matches).Take(5)
+            .Select(r => (r.Key, r.Name, (double)r.Wins, $"🏆 {N(r.Wins)}", L.F("{0} de {1}", "{0} of {1}", Pct(r.Wins, r.Matches), Games(r.Matches)))).ToList());
+        if (boards.Length > 0)
+        {
+            sb.Append($"""<section><div class="sh"><h2>{L.T("Top de compañeros", "Top teammates")}</h2><span class="meta">{L.T("cofres vistos: un mínimo", "chests seen: a minimum")}</span></div><div class="boards">{boards}</div></section>""");
+        }
 
         // Por partida: tú, cada compañero y el equipo (las 30 más recientes con compañeros).
         var recentTeam = teamMatches.Take(30).ToList();

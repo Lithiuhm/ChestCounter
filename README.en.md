@@ -103,7 +103,7 @@ From top to bottom you will see: the total chests, the last match, the session, 
 - **By game mode:** matches, average, best, chests and wins for each mode.
 - **Treasures obtained:** each treasure with its match, the moment and the source chest.
 - **Latest matches** (the 100 most recent): mode, placement (🏆 victory in gold, top 10 in green), chests and treasures.
-- **Teammates** (if you turn it on in Settings): who you play with, matches together, wins, your chests in those matches and the chests they were seen opening. The latter are **not exact**: they come from your replay, and Fortnite only records what happens near you; if a teammate goes too far away, their chests stop being counted. They are a minimum (≥). It includes the **team chests** (you + your teammates) in total and per match, with each teammate's share; the main window shows the team of the current or last match. They are only added to your figures if you turn on "Add their chests to your total".
+- **Teammates** (if you turn it on in Settings): who you play with, matches together, wins, your chests in those matches and the chests they were seen opening. The latter are **not exact**: they come from your replay, and Fortnite only records what happens within 1,087 m of you; if a teammate goes further, their chests stop being counted. They are a minimum (≥). It includes the **team chests** (you + your teammates) in total and per match, with each teammate's share; the main window shows the team of the current or last match. They are only added to your figures if you turn on "Add their chests to your total".
 
 <p align="center"><img src="docs/report.png" alt="Report" width="820"></p>
 

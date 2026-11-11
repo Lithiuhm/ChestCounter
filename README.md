@@ -103,7 +103,7 @@ De arriba abajo verás: el total de cofres, la última partida, la sesión, hoy,
 - **Por modo de juego:** partidas, media, récord, cofres y victorias de cada modo.
 - **Tesoros obtenidos:** cada tesoro con su partida, el momento y el cofre de origen.
 - **Últimas partidas** (las 100 más recientes): modo, puesto (🏆 victoria en dorado, top 10 en verde), cofres y tesoros.
-- **Compañeros** (si lo activas en Ajustes): con quién juegas, partidas juntos, victorias, tus cofres en esas partidas y los cofres que se les vio abrir. Estos últimos **no son exactos**: salen de tu replay, y Fortnite solo graba lo que pasa cerca de ti; si un compañero se aleja demasiado, sus cofres dejan de contarse. Son un mínimo (≥). Incluye los **cofres del equipo** (tú + tus compañeros) en total y por partida, con lo que aporta cada compañero; la ventana principal muestra el equipo de la partida actual o la última. Solo se suman a tus cifras si activas «Sumar sus cofres a tu total».
+- **Compañeros** (si lo activas en Ajustes): con quién juegas, partidas juntos, victorias, tus cofres en esas partidas y los cofres que se les vio abrir. Estos últimos **no son exactos**: salen de tu replay, y Fortnite solo graba lo que pasa a menos de 1.087 m de ti; si un compañero se aleja más, sus cofres dejan de contarse. Son un mínimo (≥). Incluye los **cofres del equipo** (tú + tus compañeros) en total y por partida, con lo que aporta cada compañero; la ventana principal muestra el equipo de la partida actual o la última. Solo se suman a tus cifras si activas «Sumar sus cofres a tu total».
 
 <p align="center"><img src="docs/report.png" alt="Informe" width="820"></p>
 

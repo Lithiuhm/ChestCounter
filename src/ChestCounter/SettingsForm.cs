@@ -78,19 +78,21 @@ public sealed class SettingsForm : Form
         _report = AddToggleRow(start, L.T("Abrir el informe al iniciar", "Open the report at startup"), null, 64, config.OpenReportOnStart);
         _report.CheckedChanged += (_, _) => { if (!_loading) _monitor.Change(c => c.OpenReportOnStart = _report.Checked); };
         var mates = AddToggleRow(start, L.T("Compañeros en el informe", "Teammates in the report"),
-            L.T("Sus cofres son aproximados", "Their chests are approximate"), 94, config.ShowTeammates);
+            L.T("Sus cofres: hasta 1.087 m de ti", "Their chests: up to 1,087 m from you"), 94, config.ShowTeammates);
         mates.CheckedChanged += (_, _) =>
         {
             if (_loading)
             {
                 return;
             }
-            if (mates.Checked)
+            if (mates.Checked && !InfoDialog.Confirm(this, L.T("Compañeros en el informe", "Teammates in the report"),
+                    L.T("La ventana y el informe mostrarán con quién juegas y los cofres de cada compañero.",
+                        "The window and the report will show who you play with and each teammate's chests."),
+                    new[] { ExactPoint(), ApproxPoint() },
+                    L.T("Activar", "Turn on"), L.T("Cancelar", "Cancel")))
             {
-                MessageBox.Show(this, L.Big("teammatesWarning",
-                        "El informe mostrará con quién juegas, cuántas partidas habéis jugado juntos y vuestras victorias.\n\nLos cofres de tus compañeros no son exactos: salen de tu replay, y Fortnite solo graba lo que pasa cerca de ti. Si un compañero se aleja demasiado, sus cofres dejan de contarse. Son un mínimo, no su total.",
-                        "The report will show who you play with, how many matches you played together and your wins.\n\nYour teammates' chests are not exact: they come from your replay, and Fortnite only records what happens near you. If a teammate goes too far away, their chests stop being counted. They are a minimum, not their total."),
-                    L.T("Compañeros en el informe", "Teammates in the report"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Revert(mates);
+                return;
             }
             _monitor.SetShowTeammates(mates.Checked);
         };
@@ -101,12 +103,19 @@ public sealed class SettingsForm : Form
             {
                 return;
             }
-            if (addMates.Checked)
+            if (addMates.Checked && !InfoDialog.Confirm(this, L.T("Sumar sus cofres a tu total", "Add their chests to your total"),
+                    L.T("Tu total, tu media, tus récords y el overlay incluirán también los cofres de tus compañeros.",
+                        "Your total, your average, your records and the overlay will also include your teammates' chests."),
+                    new[]
+                    {
+                        ApproxPoint(),
+                        new InfoPoint("↺", Theme.Cyan, L.T("Tu historial no cambia", "Your history does not change"),
+                            L.T("Al desactivarlo vuelves a ver solo tus cofres.", "Turning it off shows only your chests again.")),
+                    },
+                    L.T("Activar", "Turn on"), L.T("Cancelar", "Cancel")))
             {
-                MessageBox.Show(this, L.Big("teammatesAddWarning",
-                        "Tu total, tu media, tus récords y el overlay incluirán también los cofres que se vio abrir a tus compañeros.\n\nNo son exactos: Fortnite solo graba lo que pasa cerca de ti, así que los cofres de un compañero que se aleja no se cuentan. Tu historial no cambia: al desactivarlo vuelves a ver solo los tuyos.",
-                        "Your total, your average, your records and the overlay will also include the chests your teammates were seen opening.\n\nThey are not exact: Fortnite only records what happens near you, so the chests of a teammate who goes away are not counted. Your history does not change: turning it off shows only yours again."),
-                    L.T("Sumar sus cofres a tu total", "Add their chests to your total"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Revert(addMates);
+                return;
             }
             _monitor.SetCountTeammates(addMates.Checked);
         };
@@ -255,6 +264,24 @@ public sealed class SettingsForm : Form
         AcceptButton = close;
         CancelButton = close;
         ActiveControl = close; // sin anillo de foco en el primer interruptor al abrir
+    }
+
+    /// <summary>Lo que sí es exacto de los compañeros.</summary>
+    private static InfoPoint ExactPoint() => new("✓", Theme.Mint, L.T("Exacto", "Exact"),
+        L.T("Con quién juegas, partidas juntos y victorias.", "Who you play with, matches together and wins."));
+
+    /// <summary>Lo que no: sus cofres, con la distancia medida en replays reales.</summary>
+    private static InfoPoint ApproxPoint() => new("≈", Theme.Amber, L.T("Aproximado: sus cofres", "Approximate: their chests"),
+        L.Big("teammatesRange",
+            "Fortnite solo graba lo que pasa a menos de 1.087 m de ti. Si un compañero se aleja más, sus cofres no se cuentan: son un mínimo, no su total.",
+            "Fortnite only records what happens within 1,087 m of you. If a teammate goes further, their chests are not counted: they are a minimum, not their total."));
+
+    /// <summary>Vuelve a poner el interruptor como estaba (se canceló el diálogo), sin guardar nada.</summary>
+    private void Revert(ToggleSwitch toggle)
+    {
+        _loading = true;
+        toggle.Checked = !toggle.Checked;
+        _loading = false;
     }
 
     protected override void OnHandleCreated(EventArgs e)
