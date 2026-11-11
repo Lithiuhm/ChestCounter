@@ -142,7 +142,12 @@ public sealed class Config
 
     /// <summary>"prompt" (offer new versions), "auto" (install them) or "off" (never check GitHub).</summary>
     public string UpdateMode { get; set; } = "prompt";
-    public bool OpenReportOnStart { get; set; } = true;
+    /// <summary>
+    /// Open the report when the tool starts (off by default). Saved under a new name: the old key defaulted to on
+    /// while doing nothing, so old configs must not suddenly start opening the browser.
+    /// </summary>
+    [JsonPropertyName("OpenReportAtStartup")]
+    public bool OpenReportOnStart { get; set; }
     public int? OverlayX { get; set; }
     public int? OverlayY { get; set; }
     /// <summary>Locked overlay = click-through, cannot be moved (Ctrl+Shift+L to toggle).</summary>

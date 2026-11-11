@@ -442,7 +442,8 @@ public sealed class SettingsForm : Form
 
     private static ToggleSwitch AddToggleRow(Card card, string text, string? hint, int top, bool value)
     {
-        var toggle = new ToggleSwitch { Location = new Point(card.Width - 13 - 40, top + 5), Checked = value };
+        // Centrado con lo que tiene a la izquierda: solo el título (una línea) o título y línea gris (dos).
+        var toggle = new ToggleSwitch { Location = new Point(card.Width - 13 - 40, hint != null ? top + 5 : top - 2), Checked = value };
         var label = Lbl(card, text, 9.5f, FontStyle.Bold, Theme.Ink, new Point(13, top), new Size(card.Width - 26 - 48, 18));
         label.Cursor = Cursors.Hand;
         label.Click += (_, _) => toggle.Checked = !toggle.Checked;

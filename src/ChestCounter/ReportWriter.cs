@@ -335,15 +335,15 @@ public static class ReportWriter
         @media (prefers-reduced-motion:reduce){.dot,.spin{animation:none}}
         """;
 
-    // Pestañas del informe. La elegida se recuerda (la página se recarga sola cada pocos segundos) y también la
-    // posición de la página. Sin JavaScript se ven todas las secciones seguidas.
+    // Pestañas del informe. Se abre siempre en Resumen; la pestaña elegida y la posición solo se recuerdan en esa
+    // pestaña del navegador mientras la página se recarga sola. Sin JavaScript se ven todas las secciones seguidas.
     private const string TabsScript = """
         (function(){var d=document,tabs=[].slice.call(d.querySelectorAll('[data-tab]'));if(!tabs.length)return;d.documentElement.classList.add('js');
         function get(k,s){try{return (s?sessionStorage:localStorage).getItem(k)}catch(e){return null}}
         function put(k,v,s){try{(s?sessionStorage:localStorage).setItem(k,v)}catch(e){}}
         function show(id,save){var t=null;tabs.forEach(function(b){var on=b.getAttribute('data-tab')===id;b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;if(on)t=b});
-          if(!t)return false;var bar=t.parentNode;bar.scrollLeft=t.offsetLeft-(bar.clientWidth-t.offsetWidth)/2;[].forEach.call(d.querySelectorAll('.panel'),function(p){p.hidden=p.id!=='t-'+id});if(save)put('cc-tab',id);return true}
-        var h=location.hash.slice(1);if(!(h&&show(h,true))&&!show(get('cc-tab')||'',false))show(tabs[0].getAttribute('data-tab'),false);
+          if(!t)return false;var bar=t.parentNode;bar.scrollLeft=t.offsetLeft-(bar.clientWidth-t.offsetWidth)/2;[].forEach.call(d.querySelectorAll('.panel'),function(p){p.hidden=p.id!=='t-'+id});if(save)put('cc-tab',id,true);return true}
+        var h=location.hash.slice(1);if(!(h&&show(h,true))&&!show(get('cc-tab',true)||'',false))show(tabs[0].getAttribute('data-tab'),false);
         function go(id){if(show(id,true)){window.scrollTo(0,0);try{history.replaceState(null,'','#'+id)}catch(e){}}}
         tabs.forEach(function(b,i){b.addEventListener('click',function(){go(b.getAttribute('data-tab'))});
           b.addEventListener('keydown',function(e){var k=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!k)return;e.preventDefault();var n=tabs[(i+k+tabs.length)%tabs.length];go(n.getAttribute('data-tab'));n.focus()})});
