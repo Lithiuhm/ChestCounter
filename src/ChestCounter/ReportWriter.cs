@@ -1000,7 +1000,7 @@ public static class ReportWriter
         sb.AppendLine(L.T("fecha;modo;jugador;puesto;jugadores;cofres;cajas_municion;tesoros;archivo",
             "date;mode;player;placement;players;chests;ammo_boxes;treasures;file"));
 
-        foreach (var m in data.Matches.OrderBy(When))
+        foreach (var m in data.Matches.Where(Profiles.IsSupportedVersion).OrderBy(When))
         {
             var t = string.Join(" + ", m.TreasureFinds.Select(f => f.DisplayName));
             sb.AppendLine(string.Join(";",

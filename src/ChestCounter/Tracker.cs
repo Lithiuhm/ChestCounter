@@ -254,6 +254,15 @@ public sealed class Tracker
                 "not a Battle Royale match (Creative / other mode)"));
         }
 
+        if (!Profiles.IsSupportedVersion(record))
+        {
+            _data.Matches.RemoveAll(m => m.SessionId == record.SessionId);
+            _data.ProcessedFiles[key] = "older version";
+            _store.SaveData(_data);
+            return new Outcome(Skipped: L.T("versión anterior a v43 (Capítulo 7 Mini Temporada)",
+                "version prior to v43 (Chapter 7 Mini Season)"));
+        }
+
         var existing = _data.Matches.FirstOrDefault(m => m.SessionId == record.SessionId);
         if (existing != null && existing.AnalyzerVersion >= record.AnalyzerVersion)
         {
@@ -367,8 +376,8 @@ public sealed class Tracker
         if (skipped > 0)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine(L.F("    {0} ignorado(s): modos creativos o partidas ya contadas.",
-                "    {0} skipped: Creative modes or matches already counted.", skipped));
+            Console.WriteLine(L.F("    {0} ignorado(s): versiones anteriores, modos creativos o partidas ya contadas.",
+                "    {0} skipped: older versions, Creative modes or matches already counted.", skipped));
             Console.ResetColor();
         }
         if (errors.Count > 0)
@@ -538,7 +547,7 @@ public sealed class Tracker
         }
 
         var hadData = _data.Matches.Count > 0;
-        foreach (var key in _data.ProcessedFiles.Where(kv => kv.Value != "skipped").Select(kv => kv.Key).ToList())
+        foreach (var key in _data.ProcessedFiles.Where(kv => kv.Value != "skipped" && kv.Value != "other mode" && kv.Value != "older version").Select(kv => kv.Key).ToList())
         {
             _data.ProcessedFiles.Remove(key);
         }
@@ -550,7 +559,7 @@ public sealed class Tracker
     private void PrintMatch(MatchRecord m, bool updated)
     {
         m = Profiles.Adjust(m, _config)!;
-        var total = _data.Matches.Where(x => Profiles.Key(x) == Profiles.Key(m)).Sum(x => Profiles.Adjust(x, _config)!.ChestsOpened) + Profiles.InitialChests(_config, Profiles.Key(m));
+        var total = _data.Matches.Where(x => Profiles.Key(x) == Profiles.Key(m) && Profiles.Counted(x, _config)).Sum(x => Profiles.Adjust(x, _config)!.ChestsOpened) + Profiles.InitialChests(_config, Profiles.Key(m));
         var when = (m.MatchStartUtc ?? m.AnalyzedAtUtc).ToLocalTime();
 
         Console.ForegroundColor = ConsoleColor.Green;

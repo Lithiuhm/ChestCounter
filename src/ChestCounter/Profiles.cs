@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Text.RegularExpressions;
+
 namespace ChestCounter;
 
 /// <summary>An Epic account that recorded replays on this PC. Stats are kept per profile.</summary>
@@ -10,6 +13,55 @@ public sealed record Profile(string Key, string Name, int Matches, int Chests, D
 /// </summary>
 public static class Profiles
 {
+    /// <summary>Minimum Fortnite major version counted for Chapter 7 Mini Season (v43.X).</summary>
+    public const int MinFortniteMajorVersion = 43;
+
+    /// <summary>
+    /// Extracts the Fortnite major version from the engine branch string (e.g. "++Fortnite+Release-43.00" -> 43).
+    /// </summary>
+    public static int? ParseFortniteMajorVersion(string? version)
+    {
+        if (string.IsNullOrWhiteSpace(version))
+        {
+            return null;
+        }
+
+        var match = Regex.Match(version, @"(?:Release-|v|\b)(\d+)\.(\d+)", RegexOptions.IgnoreCase);
+        if (match.Success && int.TryParse(match.Groups[1].Value, NumberStyles.None, CultureInfo.InvariantCulture, out var major))
+        {
+            return major;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// True when the match belongs to Fortnite version v43.X (Chapter 7 Mini Season) or later.
+    /// Matches from earlier versions (e.g. v42, v41...) are excluded from statistics.
+    /// </summary>
+    public static bool IsSupportedVersion(MatchRecord? m)
+    {
+        if (m == null)
+        {
+            return false;
+        }
+
+        var major = ParseFortniteMajorVersion(m.GameVersion);
+        if (major.HasValue)
+        {
+            return major.Value >= MinFortniteMajorVersion;
+        }
+
+        // If GameVersion is missing or unparseable, check match date (v43.00 launched in November 2026).
+        var when = m.MatchStartUtc ?? m.AnalyzedAtUtc;
+        if (when != default && when < new DateTime(2026, 11, 1, 0, 0, 0, DateTimeKind.Utc))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     /// <summary>Stable key of a match's account: Epic id (survives a name change), else the display name.</summary>
     public static string Key(MatchRecord m) => !string.IsNullOrEmpty(m.EpicId) ? m.EpicId : m.PlayerName ?? "";
 
@@ -17,11 +69,18 @@ public static class Profiles
         .GroupBy(Key)
         .Select(g =>
         {
-            var latest = g.OrderByDescending(When).First();
-            var name = g.OrderByDescending(When).Select(m => m.PlayerName).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n));
-            var chests = g.Sum(m => (c != null ? Adjust(m, c)! : m).ChestsOpened);
-            return new Profile(g.Key, name ?? L.T("Cuenta desconocida", "Unknown account"), g.Count(), chests, When(latest));
+            var validMatches = g.Where(m => c == null ? IsSupportedVersion(m) : Counted(m, c)).ToList();
+            if (validMatches.Count == 0)
+            {
+                return null;
+            }
+            var latest = validMatches.OrderByDescending(When).First();
+            var name = validMatches.OrderByDescending(When).Select(m => m.PlayerName).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n));
+            var chests = validMatches.Sum(m => (c != null ? Adjust(m, c)! : m).ChestsOpened);
+            return new Profile(g.Key, name ?? L.T("Cuenta desconocida", "Unknown account"), validMatches.Count, chests, When(latest));
         })
+        .Where(p => p != null)
+        .Select(p => p!)
         .OrderByDescending(p => p.LastPlayed)
         .ToList();
 
@@ -30,7 +89,7 @@ public static class Profiles
     /// <summary>The selected profile when it exists, else the most recently played one (null = no match yet).</summary>
     public static Profile? Current(TrackerData d, Config c)
     {
-        var all = List(d);
+        var all = List(d, c);
         return all.FirstOrDefault(p => p.Key == c.Profile) ?? all.FirstOrDefault();
     }
 
@@ -46,10 +105,17 @@ public static class Profiles
             Version = d.Version,
             AnalyzerVersion = d.AnalyzerVersion,
             CreatedUtc = d.CreatedUtc,
-            Matches = d.Matches.Where(m => current == null || Key(m) == current.Key).Select(m => Adjust(m, c)!).ToList(),
+            Matches = d.Matches.Where(m => (current == null || Key(m) == current.Key) && Counted(m, c)).Select(m => Adjust(m, c)!).ToList(),
             ProcessedFiles = d.ProcessedFiles,
         };
     }
+
+    /// <summary>Local day a match was played on.</summary>
+    public static DateTime Day(MatchRecord m) => When(m).ToLocalTime().Date;
+
+    /// <summary>True when the match counts for statistics (version v43.X+ and respects the "count from" date setting).</summary>
+    public static bool Counted(MatchRecord m, Config c) =>
+        IsSupportedVersion(m) && (c.CountFrom is not { } from || Day(m) >= from.Date);
 
     /// <summary>A match as shown: its total also includes the non-chest kinds and, if chosen, the teammates' chests.</summary>
     public static MatchRecord? Adjust(MatchRecord? m, Config c) => m?.WithExtras(c.ExtraKinds(), c.CountTeammateChests);

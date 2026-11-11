@@ -185,6 +185,35 @@ public sealed class Monitor
         Change(c => c.CountTeammateChests = count);
     }
 
+    /// <summary>Contar solo desde una fecha (null = todas las partidas). Rehace el informe enseguida.</summary>
+    public void SetCountFrom(DateTime? from)
+    {
+        _reportRequested = true;
+        Change(c => c.CountFrom = from?.Date);
+    }
+
+    /// <summary>
+    /// Días con partidas del perfil mostrado (todas, sin el filtro de fecha), del más reciente al más antiguo, con
+    /// cuántas partidas hubo: es lo que ofrece el selector «Contar desde».
+    /// </summary>
+    public IReadOnlyList<(DateTime Day, int Matches)> MatchDays()
+    {
+        try
+        {
+            var key = Profiles.Current(_data, _config)?.Key;
+            return _data.Matches.ToList()
+                .Where(m => (key == null || Profiles.Key(m) == key) && Profiles.IsSupportedVersion(m))
+                .GroupBy(Profiles.Day)
+                .OrderByDescending(g => g.Key)
+                .Select(g => (g.Key, g.Count()))
+                .ToList();
+        }
+        catch (InvalidOperationException)
+        {
+            return Array.Empty<(DateTime, int)>(); // la lista cambió mientras se leía: sin días esta vez
+        }
+    }
+
     /// <summary>Mostrar u ocultar la sección «Compañeros» del informe. Rehace el informe enseguida.</summary>
     public void SetShowTeammates(bool show)
     {
@@ -427,7 +456,8 @@ public sealed class Monitor
         var shown = Profiles.Current(_data, _config);
         _shownKey = shown?.Key;
         _shownName = shown?.Name;
-        var view = OverlayModel.Build(Profiles.View(_data, _config), Profiles.Adjust(_tracker.LiveMatch, _config), _tracker.IsLive, Profiles.InitialChests(_data, _config));
+        var liveAdjusted = (_tracker.LiveMatch != null && Profiles.Counted(_tracker.LiveMatch, _config)) ? Profiles.Adjust(_tracker.LiveMatch, _config) : null;
+        var view = OverlayModel.Build(Profiles.View(_data, _config), liveAdjusted, _tracker.IsLive && liveAdjusted != null, Profiles.InitialChests(_data, _config));
         ReportWriter.WriteOverlay(_store, view);
         ObsServer.Update(view);
         if (OperatingSystem.IsWindows() && NativeOverlay.IsRunning)
@@ -452,7 +482,7 @@ public sealed class Monitor
     private ChestStats BuildStats()
     {
         var matches = Profiles.View(_data, _config).Matches;
-        var live = _tracker.IsLive ? Profiles.Adjust(_tracker.LiveMatch, _config) : null;
+        var live = _tracker.IsLive && _tracker.LiveMatch != null && Profiles.Counted(_tracker.LiveMatch, _config) ? Profiles.Adjust(_tracker.LiveMatch, _config) : null;
         var today = DateTime.Now.Date;
 
         var perDay = new Dictionary<DateTime, int>();
@@ -498,7 +528,7 @@ public sealed class Monitor
             return null;
         }
         var kinds = _config.ExtraKinds();
-        var live = _tracker.IsLive ? Profiles.Adjust(_tracker.LiveMatch, _config) : null;
+        var live = _tracker.IsLive && _tracker.LiveMatch != null && Profiles.Counted(_tracker.LiveMatch, _config) ? Profiles.Adjust(_tracker.LiveMatch, _config) : null;
         var m = live ?? Profiles.View(_data, _config).Matches.OrderByDescending(x => x.MatchStartUtc ?? x.AnalyzedAtUtc).FirstOrDefault();
         if (m == null)
         {

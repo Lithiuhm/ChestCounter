@@ -191,6 +191,12 @@ public sealed class Config
     public bool ShowTeammates { get; set; }
 
     /// <summary>
+    /// Count only the matches played on or after this local date (null = all the replays, the default). The older
+    /// matches stay saved in data.json: they are only hidden from the figures, and come back when this is cleared.
+    /// </summary>
+    public DateTime? CountFrom { get; set; }
+
+    /// <summary>
     /// Add the chests the teammates were seen opening to the player's own total (off by default). Like the extra
     /// kinds, only the figures shown change: the saved history keeps the player's own chests.
     /// </summary>
