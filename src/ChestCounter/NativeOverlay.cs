@@ -175,6 +175,12 @@ public static class NativeOverlay
         var screenDc = GetDC(IntPtr.Zero);
         _scale = GetDeviceCaps(screenDc, LOGPIXELSY) / 96f;
         ReleaseDC(IntPtr.Zero, screenDc);
+        // Desarrollo (capturas del README con --overlay-preview): CHESTCOUNTER_OVERLAY_SCALE fuerza la escala.
+        if (float.TryParse(Environment.GetEnvironmentVariable("CHESTCOUNTER_OVERLAY_SCALE"), System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var forced) && forced is > 0.5f and < 5f)
+        {
+            _scale = forced;
+        }
 
         int S(int v) => (int)Math.Round(v * _scale);
 

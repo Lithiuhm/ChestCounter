@@ -34,7 +34,7 @@ ChestCounter reads the replays Fortnite saves of every match and keeps count of 
    > Windows may show *"Windows protected your PC"* because the exe is not signed. Click *More info → Run anyway*.
 4. The welcome screen reminds you about replays and, if there are already replays on your PC, lets you **count them** or start with **your next matches only**.
 
-<p align="center"><img src="docs/setup.png" alt="First-run welcome" width="440"></p>
+<p align="center"><img src="docs/setup.png" alt="First-run welcome" width="520"></p>
 
 5. Leave the window open (you can minimize it) while you play. During the match the counter reads the replay being recorded and adds the chests **live**; when the match ends they are confirmed.
 
@@ -43,7 +43,7 @@ ChestCounter reads the replays Fortnite saves of every match and keeps count of 
 
 ## The main window
 
-<p align="center"><img src="docs/main.png" alt="Main window" width="592"></p>
+<p align="center"><img src="docs/main.png" alt="Main window" width="680"></p>
 
 - **Top left**: your chest total, the last match (or the current one, in green, while you play) and the session.
 - **Right**: today, best day, average, best match, history (saved matches and since when) and treasures.
@@ -92,7 +92,7 @@ With **Add their chests to your total** (also off), your total, average, records
 
 ## The overlay
 
-<p align="center"><img src="docs/overlay-espera.png" alt="Overlay between two matches" width="300">&nbsp;&nbsp;<img src="docs/overlay-en-curso.png" alt="Overlay during a match" width="300"></p>
+<p align="center"><img src="docs/overlay-espera.png" alt="Overlay between two matches" width="300">&nbsp;&nbsp;<img src="docs/overlay-en-vivo.png" alt="Overlay live during a match" width="300"></p>
 
 - **Big numbers**: your chest **total** and, in the box, the **previous** match (or the **current** one, live, while you play).
 - **Session**, session **average**, **previous** (during a match) and **treasures**.
@@ -111,7 +111,7 @@ Streaming? While the counter is open, the same overlay is at **http://localhost:
 
 ## Settings
 
-<p align="center"><img src="docs/settings.png" alt="Settings" width="592"></p>
+<p align="center"><img src="docs/settings.png" alt="Settings" width="620"></p>
 
 - **Language**: the Windows language by default; at the top you can pick another (Spanish, English, Portuguese, Russian, French, German, Italian, Polish, Turkish or Japanese).
 - **Open with Fortnite**: a small invisible process opens the counter (minimized) when Fortnite starts and closes it 30 s after Fortnite closes. It reads nothing from the game: it only looks at the list of running programs.

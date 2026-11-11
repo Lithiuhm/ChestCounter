@@ -38,7 +38,7 @@ public sealed class InfoDialog : Form
             Text = "i",
             Font = new Font("Georgia", 15f, FontStyle.Bold | FontStyle.Italic),
             ForeColor = Theme.Cyan,
-            BackColor = Theme.Panel,
+            BackColor = Color.Transparent, // deja ver el círculo de la tarjeta
             Location = new Point(0, 0),
             Size = new Size(40, 40),
             TextAlign = ContentAlignment.MiddleCenter,
@@ -62,7 +62,7 @@ public sealed class InfoDialog : Form
                 Text = p.Glyph,
                 Font = Theme.Text(10f, FontStyle.Bold),
                 ForeColor = p.Color,
-                BackColor = Theme.Panel,
+                BackColor = Color.Transparent,
                 Location = new Point(0, 0),
                 Size = new Size(26, 26),
                 TextAlign = ContentAlignment.MiddleCenter,

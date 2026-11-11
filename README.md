@@ -34,7 +34,7 @@ ChestCounter lee las repeticiones (replays) que Fortnite guarda de cada partida 
    > Windows puede mostrar *"Windows protegió tu PC"* porque el exe no está firmado. Haz clic en *Más información → Ejecutar de todas formas*.
 4. La bienvenida te recuerda lo de las repeticiones y, si ya tienes replays en el PC, te deja **contarlos** o empezar **solo con las próximas partidas**.
 
-<p align="center"><img src="docs/setup.png" alt="Bienvenida del primer inicio" width="440"></p>
+<p align="center"><img src="docs/setup.png" alt="Bienvenida del primer inicio" width="520"></p>
 
 5. Deja la ventana abierta (puedes minimizarla) mientras juegas. Durante la partida el contador lee el replay que se está grabando y suma los cofres **en directo**; al terminar, se confirman.
 
@@ -43,7 +43,7 @@ ChestCounter lee las repeticiones (replays) que Fortnite guarda de cada partida 
 
 ## La ventana principal
 
-<p align="center"><img src="docs/main.png" alt="Ventana principal" width="592"></p>
+<p align="center"><img src="docs/main.png" alt="Ventana principal" width="680"></p>
 
 - **Arriba a la izquierda**: tu total de cofres, la última partida (o la actual, en verde, mientras juegas) y la sesión.
 - **A la derecha**: hoy, el mejor día, la media, la mejor partida, el histórico (partidas guardadas y desde cuándo) y los tesoros.
@@ -92,7 +92,7 @@ Con **Sumar sus cofres a tu total** (también desactivado), tu total, media, ré
 
 ## El overlay
 
-<p align="center"><img src="docs/overlay-espera.png" alt="Overlay entre dos partidas" width="300">&nbsp;&nbsp;<img src="docs/overlay-en-curso.png" alt="Overlay durante una partida" width="300"></p>
+<p align="center"><img src="docs/overlay-espera.png" alt="Overlay entre dos partidas" width="300">&nbsp;&nbsp;<img src="docs/overlay-en-vivo.png" alt="Overlay en directo durante una partida" width="300"></p>
 
 - **Cifras grandes**: tu **total** de cofres y, en el recuadro, la partida **anterior** (o la **actual**, en directo, mientras juegas).
 - **Sesión**, **media** de la sesión, **anterior** (durante una partida) y **tesoros**.
@@ -111,7 +111,7 @@ Para verlo sobre el juego, pon Fortnite en **Pantalla completa en ventana** (*Aj
 
 ## Ajustes
 
-<p align="center"><img src="docs/settings.png" alt="Ajustes" width="592"></p>
+<p align="center"><img src="docs/settings.png" alt="Ajustes" width="620"></p>
 
 - **Idioma**: por defecto el de Windows; arriba puedes elegir otro (español, inglés, portugués, ruso, francés, alemán, italiano, polaco, turco o japonés).
 - **Abrir con Fortnite**: un pequeño proceso invisible abre el contador (minimizado) cuando arranca Fortnite y lo cierra 30 s después de cerrarlo. No lee nada del juego: solo mira la lista de programas en marcha.
