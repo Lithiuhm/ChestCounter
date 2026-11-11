@@ -13,13 +13,14 @@ public static class Profiles
     /// <summary>Stable key of a match's account: Epic id (survives a name change), else the display name.</summary>
     public static string Key(MatchRecord m) => !string.IsNullOrEmpty(m.EpicId) ? m.EpicId : m.PlayerName ?? "";
 
-    public static List<Profile> List(TrackerData d) => d.Matches
+    public static List<Profile> List(TrackerData d, Config? c = null) => d.Matches
         .GroupBy(Key)
         .Select(g =>
         {
             var latest = g.OrderByDescending(When).First();
             var name = g.OrderByDescending(When).Select(m => m.PlayerName).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n));
-            return new Profile(g.Key, name ?? L.T("Cuenta desconocida", "Unknown account"), g.Count(), g.Sum(m => m.ChestsOpened), When(latest));
+            var chests = g.Sum(m => (c != null ? Adjust(m, c)! : m).ChestsOpened);
+            return new Profile(g.Key, name ?? L.T("Cuenta desconocida", "Unknown account"), g.Count(), chests, When(latest));
         })
         .OrderByDescending(p => p.LastPlayed)
         .ToList();
@@ -34,8 +35,8 @@ public static class Profiles
     }
 
     /// <summary>
-    /// The data of one profile only, as seen by the window, the overlay and the report. Without the
-    /// "count destroyed chests" setting, the matches are copies without the destroyed chests.
+    /// The data of one profile only, as seen by the window, the overlay and the report. With the "count ammo
+    /// boxes / food boxes / loot cannons" settings, the matches are copies whose total includes them.
     /// </summary>
     public static TrackerData View(TrackerData d, Config c)
     {
@@ -50,8 +51,8 @@ public static class Profiles
         };
     }
 
-    /// <summary>A match as shown: without its destroyed chests when they are not counted as opened.</summary>
-    public static MatchRecord? Adjust(MatchRecord? m, Config c) => m == null || c.CountDestroyed ? m : m.WithoutDestroyed();
+    /// <summary>A match as shown: its total also includes the non-chest kinds chosen in the settings.</summary>
+    public static MatchRecord? Adjust(MatchRecord? m, Config c) => m?.WithExtras(c.ExtraKinds());
 
     /// <summary>Estimated chests opened before the tool for a profile key ("" = before the first match).</summary>
     public static int InitialChests(Config c, string? key) =>

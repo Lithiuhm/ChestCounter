@@ -87,7 +87,7 @@ La ventana tiene tres botones: **Overlay** (mostrar u ocultar el overlay; punto 
 
 La ventana se puede **redimensionar y maximizar**: todo crece en proporción (tarjetas, cifras y gráfico) y ningún texto se corta; si una cifra no cabe en su tarjeta, su letra se reduce un poco.
 
-En **Ajustes** puedes abrir con Fortnite, abrir el informe al iniciar, **contar los cofres rotos** como abiertos (activado por defecto), elegir las actualizaciones, escribir los **cofres abiertos antes del contador** (un estimado que se suma a tu total), copiar la **dirección del overlay para OBS** y cambiar la carpeta de repeticiones. Abajo se ve la versión instalada.
+En **Ajustes** puedes abrir con Fortnite, abrir el informe al iniciar, elegir si las **cajas de munición, las cajas de comida y los cañones de botín** cuentan también como cofres (desactivado por defecto), elegir las actualizaciones, escribir los **cofres abiertos antes del contador** (un estimado que se suma a tu total), copiar la **dirección del overlay para OBS** y cambiar la carpeta de repeticiones. Abajo se ve la versión instalada.
 
 <p align="center"><img src="docs/settings.png" alt="Ajustes" width="400"></p>
 
@@ -99,7 +99,7 @@ De arriba abajo verás: el total de cofres, la última partida, la sesión, hoy,
 
 - **Cifras clave:** el total de cofres en grande, con los de la sesión y tus victorias reales; al lado, partidas, media por partida, récord y tesoros.
 - **Cofres por día:** gráfico de los últimos 30 días con escala, la media diaria (línea discontinua) y hoy en cian. Pasa el ratón por una barra para ver el día y sus cofres.
-- **Por tipo de cofre** y **de dónde vienen los tesoros**, con una barra de proporción por fila. Las cajas de munición, de comida y los cañones de botín aparecen aparte, fuera del total.
+- **Por tipo de cofre** y **de dónde vienen los tesoros**, con una barra de proporción por fila. Las cajas de munición, de comida y los cañones de botín aparecen aparte, indicando si suman al total.
 - **Tesoros obtenidos:** cada tesoro con su partida, el momento y el cofre de origen.
 - **Últimas partidas** (las 100 más recientes): modo, puesto (🏆 victoria en dorado, top 10 en verde), cofres y tesoros.
 
@@ -143,7 +143,7 @@ Para empezar de cero: ejecuta `ChestCounter.exe --reset-config`, o borra esa car
 
 **No se cuenta nada.** Comprueba que las repeticiones están activadas en Fortnite y que la herramienta está en marcha cuando termina la partida. La ventana te indica si falta la carpeta de repeticiones o está vacía.
 
-**¿Se cuentan las cajas de munición?** No. Las cajas de munición, las cajas de comida y los cañones de botín aparecen aparte en el informe y no forman parte del total de cofres. Los cofres que **rompes** en vez de abrirlos sí se cuentan; puedes desactivarlo en **Ajustes → Contar cofres rotos** (no se borra nada: al volver a activarlo reaparecen).
+**¿Se cuentan las cajas de munición?** No, salvo que lo actives. Las cajas de munición, las cajas de comida y los cañones de botín aparecen aparte en el informe; puedes sumar cada uno al total en **Ajustes → Contar también como cofre** (no se borra nada: al desactivarlo vuelven a quedar fuera). Los cofres que **rompes** en vez de abrirlos se cuentan siempre.
 
 **¿Cómo empiezo de cero?** En **Ajustes → Restablecer estadísticas…**. Se borra todo el historial (con confirmación y una copia de seguridad `data-backup-….json` en la carpeta de tus datos) y solo se cuentan las partidas siguientes.
 

@@ -72,15 +72,24 @@ public sealed class MatchRecord
     public List<ChestRecord> Chests { get; set; } = new();
     public List<TreasureFind> TreasureFinds { get; set; } = new();
 
+    /// <summary>How many non-chest interactions of a kind (ammo box, food box, loot cannon) this match has.</summary>
+    public int Interactions(string kind) => OtherInteractions.Count > 0
+        ? OtherInteractions.GetValueOrDefault(kind)
+        : kind == ChestKinds.AmmoBox ? AmmoBoxesOpened : 0; // old matches only kept the ammo boxes
+
     /// <summary>
-    /// Copy that leaves out the chests destroyed instead of opened, for the "count destroyed chests" setting.
-    /// The saved history always keeps them.
+    /// Copy whose chest total also includes the given non-chest kinds (settings "count ammo boxes"...).
+    /// The saved history is never changed. Returns the same match when nothing is added.
     /// </summary>
-    public MatchRecord WithoutDestroyed()
+    public MatchRecord WithExtras(IReadOnlyCollection<string> kinds)
     {
+        var extra = kinds.Sum(Interactions);
+        if (extra == 0)
+        {
+            return this;
+        }
         var copy = (MatchRecord)MemberwiseClone();
-        copy.Chests = Chests.Where(c => !c.Destroyed).ToList();
-        copy.ChestsOpened = Math.Max(0, ChestsOpened - Chests.Count(c => c.Destroyed));
+        copy.ChestsOpened = ChestsOpened + extra;
         return copy;
     }
 }
@@ -123,8 +132,20 @@ public sealed class Config
     /// </summary>
     public Dictionary<string, int> InitialChests { get; set; } = new();
 
-    /// <summary>Count a closed chest that was destroyed (broken) as opened. The history always keeps both.</summary>
-    public bool CountDestroyed { get; set; } = true;
+    /// <summary>Add the ammo boxes, food boxes and loot cannons to the chest total (off by default).</summary>
+    public bool CountAmmoBoxes { get; set; }
+    public bool CountFoodBoxes { get; set; }
+    public bool CountLootCannons { get; set; }
+
+    /// <summary>Non-chest kinds the player chose to add to the chest total.</summary>
+    public IReadOnlyCollection<string> ExtraKinds()
+    {
+        var kinds = new List<string>(3);
+        if (CountAmmoBoxes) kinds.Add(ChestKinds.AmmoBox);
+        if (CountFoodBoxes) kinds.Add(ChestKinds.FoodBox);
+        if (CountLootCannons) kinds.Add(ChestKinds.Cannon);
+        return kinds;
+    }
 }
 
 public sealed class TrackerData

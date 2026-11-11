@@ -99,7 +99,7 @@ public static class ReportWriter
         try
         {
             var view = Profiles.View(data, config);
-            WriteAtomic(store.ReportPath, Report(config, view, Profiles.List(data), Profiles.InitialChests(data, config)));
+            WriteAtomic(store.ReportPath, Report(config, view, Profiles.List(data, config),Profiles.InitialChests(data, config)));
             WriteAtomic(store.OverlayPath, Overlay(OverlayModel.Build(view, null, false, Profiles.InitialChests(data, config))));
             WriteAtomic(store.CsvPath, Csv(data));
         }
@@ -379,9 +379,11 @@ public static class ReportWriter
         {
             sb.Append($"<div class=\"row sub\"><span>↳ {L.T("de ellos, destruidos en vez de abiertos", "of which destroyed instead of opened")}</span><span class=\"n\">{N(destroyedTotal)}</span></div>");
         }
+        var extraKinds = config.ExtraKinds();
         foreach (var (kind, count) in otherKinds)
         {
-            sb.Append($"<div class=\"row sub\"><span>{H(L.Name(kind))} <span class=\"sm\">· {L.T("fuera del total", "not in the total")}</span></span><span class=\"n\">{N(count)}</span></div>");
+            var note = extraKinds.Contains(kind) ? L.T("suma al total", "added to the total") : L.T("fuera del total", "not in the total");
+            sb.Append($"<div class=\"row sub\"><span>{H(L.Name(kind))} <span class=\"sm\">· {note}</span></span><span class=\"n\">{N(count)}</span></div>");
         }
         sb.Append("</div></div></section>");
 
@@ -455,14 +457,14 @@ public static class ReportWriter
         sb.Append(L.Big("footer",
             """
             <footer><h3>Cómo se cuenta</h3>
-            <p>Cuenta los cofres que abriste o destruiste tú mismo, según tus archivos de replay (analizados tras cada partida). Las cajas de munición y de comida no se cuentan.</p>
+            <p>Cuenta los cofres que abriste o destruiste tú mismo, según tus archivos de replay (analizados tras cada partida). Las cajas de munición, las cajas de comida y los cañones de botín solo cuentan si lo activas en Ajustes.</p>
             <p><span class="star">★★</span> cofre dorado de la caza del tesoro (cosmético, acceso a la tienda…), detectado con seguridad. <span class="star">★</span> tesoro recibido gracias a uno de tus cofres (momento exacto), con nombre cuando el objeto se puede identificar.</p>
             <p>Los nombres de los premios se pueden editar en <code>treasures.json</code>. Esta página se actualiza sola.</p></footer>
             </main></body></html>
             """,
             """
             <footer><h3>How it counts</h3>
-            <p>Counts the chests you opened or destroyed yourself, from your replay files (analyzed after each match). Ammo boxes and food boxes are not counted.</p>
+            <p>Counts the chests you opened or destroyed yourself, from your replay files (analyzed after each match). Ammo boxes, food boxes and loot cannons only count if you turn it on in Settings.</p>
             <p><span class="star">★★</span> golden treasure hunt chest (cosmetic, shop access…), detected for sure. <span class="star">★</span> treasure received from one of your own chests (exact moment), named when the item can be identified.</p>
             <p>Prize names can be edited in <code>treasures.json</code>. This page refreshes by itself.</p></footer>
             </main></body></html>

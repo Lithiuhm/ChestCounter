@@ -144,11 +144,11 @@ public sealed class Monitor
 
     public void SetProfile(string key) => Change(c => c.Profile = key);
 
-    /// <summary>Contar como abierto un cofre cerrado que se rompe. Rehace el informe enseguida.</summary>
-    public void SetCountDestroyed(bool on)
+    /// <summary>Sumar o no al total las cajas de munición, de comida o los cañones de botín. Rehace el informe enseguida.</summary>
+    public void SetCountExtra(Action<Config> change)
     {
         _reportRequested = true;
-        Change(c => c.CountDestroyed = on);
+        Change(change);
     }
 
     private volatile string? _resetBackup;
@@ -375,7 +375,7 @@ public sealed class Monitor
         var notice = _installing
             ? L.T("Descargando la actualización…", "Downloading the update…")
             : _notice ?? (_autoCloseAt != null ? L.T("Fortnite está cerrado: el contador se cierra en 30 s.", "Fortnite is closed: the counter closes in 30 s.") : null);
-        var state = new MonitorState(view, Profiles.List(_data), Profiles.Current(_data, _config)?.Key, _update, notice, _autoCloseAt != null, BuildStats());
+        var state = new MonitorState(view, Profiles.List(_data, _config), Profiles.Current(_data, _config)?.Key, _update, notice, _autoCloseAt != null, BuildStats());
         Changed?.Invoke(state);
     }
 

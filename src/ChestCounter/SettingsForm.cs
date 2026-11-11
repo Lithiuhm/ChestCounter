@@ -42,7 +42,7 @@ public sealed class SettingsForm : Form
         MinimizeBox = false;
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(592, 381);
+        ClientSize = new Size(592, 424);
         Icon = AppIcon.Load();
 
         // Cabecera, como en la ventana principal.
@@ -52,8 +52,8 @@ public sealed class SettingsForm : Form
 
         // ---- Columna izquierda ---------------------------------------------------------------
 
-        // Opciones: tres interruptores.
-        var start = AddCard(LeftX, 40, LeftW, 140, 16);
+        // Opciones: dos interruptores.
+        var start = AddCard(LeftX, 40, LeftW, 100, 16);
         CardTitle(start, L.T("Opciones", "Options"));
         _fortnite = AddToggleRow(start, L.T("Abrir con Fortnite", "Open with Fortnite"),
             L.T("Cuenta tus partidas sin pensar en ello", "Counts your matches without thinking about it"), 24, config.StartWithFortnite);
@@ -75,14 +75,21 @@ public sealed class SettingsForm : Form
         };
         _report = AddToggleRow(start, L.T("Abrir el informe al iniciar", "Open the report at startup"), null, 64, config.OpenReportOnStart);
         _report.CheckedChanged += (_, _) => { if (!_loading) _monitor.Change(c => c.OpenReportOnStart = _report.Checked); };
-        var destroyed = AddToggleRow(start, L.T("Contar cofres rotos", "Count destroyed chests"),
-            L.T("Romper uno cerrado cuenta como abrirlo", "Breaking a closed one counts as opening"), 100, config.CountDestroyed);
-        destroyed.CheckedChanged += (_, _) => { if (!_loading) _monitor.SetCountDestroyed(destroyed.Checked); };
+
+        // Contar también como cofre: cajas de munición, de comida y cañones de botín (los cofres rotos cuentan siempre).
+        var extras = AddCard(LeftX, 149, LeftW, 116, 16);
+        CardTitle(extras, L.T("Contar también como cofre", "Also count as a chest"));
+        var ammo = AddToggleRow(extras, L.T("Cajas de munición", "Ammo boxes"), null, 26, config.CountAmmoBoxes);
+        ammo.CheckedChanged += (_, _) => { if (!_loading) _monitor.SetCountExtra(c => c.CountAmmoBoxes = ammo.Checked); };
+        var food = AddToggleRow(extras, L.T("Cajas de comida", "Food boxes"), null, 56, config.CountFoodBoxes);
+        food.CheckedChanged += (_, _) => { if (!_loading) _monitor.SetCountExtra(c => c.CountFoodBoxes = food.Checked); };
+        var cannons = AddToggleRow(extras, L.T("Cañones de botín", "Loot cannons"), null, 86, config.CountLootCannons);
+        cannons.CheckedChanged += (_, _) => { if (!_loading) _monitor.SetCountExtra(c => c.CountLootCannons = cannons.Checked); };
 
         // Actualizaciones: tres píldoras.
-        var updates = AddCard(LeftX, 189, LeftW, 74, 14);
+        var updates = AddCard(RightX, 149, RightW, 74, 14);
         CardTitle(updates, L.T("Actualizaciones", "Updates"));
-        var pillW = (LeftW - 26 - 2 * 6) / 3;
+        var pillW = (RightW - 26 - 2 * 6) / 3;
         for (var i = 0; i < UpdateModes.Length; i++)
         {
             var index = i;
@@ -95,7 +102,7 @@ public sealed class SettingsForm : Form
         SelectUpdateMode(mode < 0 ? 0 : mode, save: false);
 
         // Carpeta de replays y datos.
-        var folderCard = AddCard(LeftX, 272, LeftW, 94, 14);
+        var folderCard = AddCard(LeftX, 274, LeftW, 94, 14);
         CardTitle(folderCard, L.T("Carpeta de replays", "Replays folder"));
         _folder = AddField(folderCard, new Point(13, 26), LeftW - 26 - 72, config.DemosFolder);
         var browse = new PillButton { Text = L.T("Cambiar", "Change"), Location = new Point(LeftW - 13 - 66, 26), Size = new Size(66, 30), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold) };
@@ -142,7 +149,7 @@ public sealed class SettingsForm : Form
             8.0f, FontStyle.Regular, Theme.Muted, new Point(16, 74), new Size(RightW - 70, 16));
 
         // OBS: dirección y estado.
-        var obsCard = AddCard(RightX, 149, RightW, 74, 14);
+        var obsCard = AddCard(RightX, 232, RightW, 74, 14);
         CardTitle(obsCard, L.T("Overlay para OBS", "Overlay for OBS"));
         var obsUrl = ObsServer.Url;
         var stateCard = new Card { Location = new Point(RightW - 13 - 70, 6), Size = new Size(70, 18), Radius = 9, BackColor = Theme.Panel };
@@ -167,7 +174,7 @@ public sealed class SettingsForm : Form
         obsCard.Controls.Add(copy);
 
         // Atajos del overlay.
-        var keys = AddCard(RightX, 232, RightW, 45, 12);
+        var keys = AddCard(RightX, 315, RightW, 45, 12);
         Lbl(keys, L.T("Atajos del overlay", "Overlay shortcuts"), 7.5f, FontStyle.Regular, Theme.Muted, new Point(13, 6), new Size(RightW - 26, 13));
         Lbl(keys, L.T("Ctrl+Mayús+O mostrar  ·  Ctrl+Mayús+L fijar", "Ctrl+Shift+O show  ·  Ctrl+Shift+L lock"),
             8.0f, FontStyle.Bold, Theme.Ink, new Point(13, 21), new Size(RightW - 26, 18));
@@ -176,8 +183,8 @@ public sealed class SettingsForm : Form
         var reset = new PillButton
         {
             Text = L.T("Restablecer estadísticas…", "Reset statistics…"),
-            Location = new Point(RightX, 286),
-            Size = new Size(RightW, 32),
+            Location = new Point(LeftX, 377),
+            Size = new Size(LeftW, 32),
             Radius = 10,
             Font = Theme.Text(8.5f, FontStyle.Bold),
             ForeColor = Theme.Red,
@@ -189,7 +196,7 @@ public sealed class SettingsForm : Form
         var close = new PillButton
         {
             Text = L.T("Cerrar", "Close"),
-            Location = new Point(RightX, 326),
+            Location = new Point(RightX, 369),
             Size = new Size(RightW, 40),
             Radius = 12,
             BackColor = Theme.Accent,

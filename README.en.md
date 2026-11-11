@@ -87,7 +87,7 @@ The window has three buttons: **Overlay** (show or hide the overlay; green dot =
 
 The window can be **resized and maximized**: everything grows in proportion (cards, figures and chart) and no text gets cut off; if a figure does not fit its card, its font shrinks a little.
 
-In **Settings** you can open with Fortnite, open the report at startup, **count destroyed chests** as opened (on by default), choose the updates, type the **chests opened before the counter** (an estimate added to your total), copy the **overlay address for OBS** and change the replays folder. The installed version is shown at the bottom.
+In **Settings** you can open with Fortnite, open the report at startup, choose whether **ammo boxes, food boxes and loot cannons** also count as chests (off by default), choose the updates, type the **chests opened before the counter** (an estimate added to your total), copy the **overlay address for OBS** and change the replays folder. The installed version is shown at the bottom.
 
 <p align="center"><img src="docs/settings.png" alt="Settings" width="400"></p>
 
@@ -99,7 +99,7 @@ From top to bottom you will see: the total chests, the last match, the session, 
 
 - **Key figures:** the total chests in large type, with this session's chests and your Victory Royales; next to it, matches, average per match, best match and treasures.
 - **Chests per day:** chart of the last 30 days with a scale, the daily average (dashed line) and today in cyan. Hover a bar to see the day and its chests.
-- **By chest type** and **where the treasures come from**, with a proportion bar on each row. Ammo boxes, food boxes and loot cannons are listed apart, not in the total.
+- **By chest type** and **where the treasures come from**, with a proportion bar on each row. Ammo boxes, food boxes and loot cannons are listed apart, showing whether they are added to the total.
 - **Treasures obtained:** each treasure with its match, the moment and the source chest.
 - **Latest matches** (the 100 most recent): mode, placement (🏆 victory in gold, top 10 in green), chests and treasures.
 
@@ -143,7 +143,7 @@ To start over: run `ChestCounter.exe --reset-config`, or delete that folder.
 
 **Nothing is counted.** Check that replays are turned on in Fortnite, and that the tool is running when the match ends. The window tells you if the replays folder is missing or empty.
 
-**Are ammo boxes counted?** No. Ammo boxes, food boxes and loot cannons are listed separately in the report and are not part of the chest total. Chests you **destroy** instead of opening are counted; you can turn this off in **Settings → Count destroyed chests** (nothing is deleted: turning it back on brings them back).
+**Are ammo boxes counted?** Not unless you turn it on. Ammo boxes, food boxes and loot cannons are listed separately in the report; you can add each one to the total in **Settings → Also count as a chest** (nothing is deleted: turning it off leaves them out again). Chests you **destroy** instead of opening are always counted.
 
 **How do I start from zero?** In **Settings → Reset statistics…**. The whole history is deleted (with a confirmation and a `data-backup-….json` copy in your data folder) and only the next matches are counted.
 
