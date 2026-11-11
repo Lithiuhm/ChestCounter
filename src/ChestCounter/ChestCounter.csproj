@@ -17,6 +17,10 @@
     <TieredPGO>true</TieredPGO>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Logos de redes para el pie de Ajustes (PNG en el propio ejecutable). -->
+    <EmbeddedResource Include="Assets\social-*.png" LogicalName="ChestCounter.Assets.%(Filename).png" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\lib\FortniteReplayReader\FortniteReplayReader.csproj" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Drawing;
+using System.Reflection;
 using System.Runtime.Versioning;
 using System.Windows.Forms;
 
@@ -42,7 +44,7 @@ public sealed class SettingsForm : Form
         MinimizeBox = false;
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(592, 424);
+        ClientSize = new Size(592, 478);
         Icon = AppIcon.Load();
 
         // Cabecera, como en la ventana principal.
@@ -205,6 +207,18 @@ public sealed class SettingsForm : Form
             DialogResult = DialogResult.OK,
         };
         Controls.Add(close);
+
+        // Pie: web y redes del autor, como enlaces que abren el navegador.
+        var footer = AddCard(LeftX, 420, RightX + RightW - LeftX, 44, 12);
+        AddLinks(footer, L.T("Web y redes", "Web and social"), "dprojects.org", "https://dprojects.org/",
+            new (string Tip, string Url, string Logo)[]
+            {
+                ("Twitter", "https://x.com/xdoofy92", "social-twitter"),
+                ("Instagram", "https://www.instagram.com/xdoofy92/", "social-instagram"),
+                ("YouTube", "https://www.youtube.com/@xdoofy92", "social-youtube"),
+                ("TikTok", "https://www.tiktok.com/@xdoofy92", "social-tiktok"),
+            });
+
         AcceptButton = close;
         CancelButton = close;
         ActiveControl = close; // sin anillo de foco en el primer interruptor al abrir
@@ -264,6 +278,82 @@ public sealed class SettingsForm : Form
         var card = new Card { Location = new Point(x, y), Size = new Size(w, h), Radius = radius, BackColor = Theme.Card };
         Controls.Add(card);
         return card;
+    }
+
+    /// <summary>
+    /// Pie de redes: título gris y la web en cian a la izquierda, y botones con los logos a la derecha;
+    /// cada uno abre su URL en el navegador. Los logos son PNG incrustados en el ejecutable (carpeta Assets).
+    /// </summary>
+    private static void AddLinks(Card footer, string title, string webText, string webUrl, (string Tip, string Url, string Logo)[] networks)
+    {
+        // Textos medidos y centrados en vertical: así no se tapan entre sí ni se cortan en ningún idioma.
+        var titleFont = Theme.Text(8.0f);
+        var titleW = TextRenderer.MeasureText(title, titleFont).Width;
+        Lbl(footer, title, 8.0f, FontStyle.Regular, Theme.Muted, new Point(13, 2), new Size(titleW, footer.Height - 4), ContentAlignment.MiddleLeft);
+
+        var webFont = Theme.Text(9.0f, FontStyle.Bold);
+        var webLabel = webText + "  ↗";
+        var web = new LinkLabel
+        {
+            Text = webLabel,
+            Font = webFont,
+            LinkColor = Theme.Cyan,
+            ActiveLinkColor = Theme.AccentHover,
+            VisitedLinkColor = Theme.Cyan,
+            LinkBehavior = LinkBehavior.HoverUnderline,
+            BackColor = footer.BackColor,
+            Location = new Point(13 + titleW + 4, 2),
+            Size = new Size(TextRenderer.MeasureText(webLabel, webFont).Width + 4, footer.Height - 4),
+            TextAlign = ContentAlignment.MiddleLeft,
+            LinkArea = new LinkArea(0, webLabel.Length),
+            Cursor = Cursors.Hand,
+        };
+        web.LinkClicked += (_, _) => OpenUrl(webUrl);
+        footer.Controls.Add(web);
+
+        var tips = new ToolTip();
+        tips.SetToolTip(web, webUrl);
+        const int size = 30, gap = 6;
+        var top = (footer.Height - size) / 2;
+        var x = footer.Width - 7 - (networks.Length * size + (networks.Length - 1) * gap);
+        foreach (var network in networks)
+        {
+            var url = network.Url;
+            var button = new LogoButton
+            {
+                Logo = LoadLogo(network.Logo),
+                Location = new Point(x, top),
+                Size = new Size(size, size),
+                AccessibleName = network.Tip,
+            };
+            button.Click += (_, _) => OpenUrl(url);
+            tips.SetToolTip(button, network.Tip);
+            footer.Controls.Add(button);
+            x += size + gap;
+        }
+    }
+    private static Image? LoadLogo(string name)
+    {
+        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"ChestCounter.Assets.{name}.png");
+        if (stream == null)
+        {
+            return null;
+        }
+        var bytes = new MemoryStream();
+        stream.CopyTo(bytes);
+        return new Bitmap(new MemoryStream(bytes.ToArray()));
+    }
+
+    private static void OpenUrl(string url)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true })?.Dispose();
+        }
+        catch
+        {
+            // Sin navegador disponible: no hacemos nada.
+        }
     }
 
     /// <summary>Título pequeño en gris, como "Hoy" o "Mejor día" en la ventana principal.</summary>

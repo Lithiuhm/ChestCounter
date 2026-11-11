@@ -308,3 +308,67 @@ public sealed class FitLabel : Label
         base.Dispose(disposing);
     }
 }
+
+/// <summary>Botón cuadrado redondeado con un logo centrado (redes del pie de Ajustes); se ilumina al pasar el ratón.</summary>
+[SupportedOSPlatform("windows")]
+public sealed class LogoButton : Control
+{
+    private bool _hover;
+
+    public LogoButton()
+    {
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
+        BackColor = Theme.Panel;
+        Cursor = Cursors.Hand;
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Image? Logo { get; set; }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public int Radius { get; set; } = 9;
+
+    protected override void OnMouseEnter(EventArgs e)
+    {
+        _hover = true;
+        Invalidate();
+        base.OnMouseEnter(e);
+    }
+
+    protected override void OnMouseLeave(EventArgs e)
+    {
+        _hover = false;
+        Invalidate();
+        base.OnMouseLeave(e);
+    }
+
+    protected override void OnPaintBackground(PaintEventArgs e)
+    {
+        e.Graphics.Clear(Parent?.BackColor ?? Theme.Card);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        var g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        using (var path = Shape.Rounded(new RectangleF(0.5f, 0.5f, Width - 1, Height - 1), Radius))
+        using (var fill = new SolidBrush(_hover ? Theme.PanelHover : BackColor))
+        {
+            g.FillPath(fill, path);
+        }
+        if (Logo == null)
+        {
+            return;
+        }
+        // El logo ocupa algo más de la mitad del botón; se reduce con filtro bicúbico para que no se vea pixelado.
+        var side = (int)Math.Round(Math.Min(Width, Height) * 0.55);
+        var dest = new Rectangle((Width - side) / 2, (Height - side) / 2, side, side);
+        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+        g.CompositingQuality = CompositingQuality.HighQuality;
+        using var attributes = new System.Drawing.Imaging.ImageAttributes();
+        attributes.SetWrapMode(WrapMode.TileFlipXY); // sin halo en los bordes al reducir
+        attributes.SetColorMatrix(new System.Drawing.Imaging.ColorMatrix { Matrix33 = _hover ? 1f : 0.78f });
+        g.DrawImage(Logo, dest, 0, 0, Logo.Width, Logo.Height, GraphicsUnit.Pixel, attributes);
+    }
+}
