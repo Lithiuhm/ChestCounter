@@ -89,7 +89,7 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
     private readonly List<GrantEvent> _grants = new();
 
     /// <summary>Bump when the analysis changes so that existing replays are re-analyzed.</summary>
-    public const int CurrentVersion = 12;
+    public const int CurrentVersion = 13;
 
     private static readonly bool ProbeDebug = Environment.GetEnvironmentVariable("CHESTCOUNTER_DEBUG") == "4";
 
@@ -550,8 +550,41 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
             });
         }
 
+        // --- Teammates: same team as the target, with what they were seen searching ----------------
+        // The replay only holds what happened near the recording player: a teammate far away is not seen.
+        var teammates = new List<TeammateRecord>();
+        if (target?.TeamIndex is int team)
+        {
+            var mates = players
+                .Where(p => p.TeamIndex == team && p.Id != target.Id && p.IsBot != true)
+                .GroupBy(p => p.EpicId ?? p.PlayerName ?? $"pid{p.Id}")
+                .Select(g => g.First())
+                .ToList();
+            foreach (var mate in mates)
+            {
+                var states = _playerStateToPlayerId.Where(kv => kv.Value == mate.Id).Select(kv => kv.Key).ToHashSet();
+                var pawns = _pawnToPlayerState.Where(kv => states.Contains(kv.Value)).Select(kv => kv.Key).ToHashSet();
+                var kinds = _searches
+                    .Where(s => s.SearcherPawn is uint p && pawns.Contains(p))
+                    .GroupBy(s => ChestKinds.Classify(s.Label))
+                    .ToDictionary(g => g.Key, g => g.Count());
+                teammates.Add(new TeammateRecord
+                {
+                    Name = !string.IsNullOrWhiteSpace(mate.PlayerName) ? mate.PlayerName.Trim() : L.T("Compañero", "Teammate"),
+                    EpicId = mate.EpicId,
+                    ChestsSeen = kinds.Where(k => ChestKinds.IsChest(k.Key)).Sum(k => k.Value),
+                    Kinds = kinds,
+                });
+            }
+            teammates.Sort((a, b) => b.ChestsSeen.CompareTo(a.ChestsSeen));
+        }
+
         if (Environment.GetEnvironmentVariable("CHESTCOUNTER_DEBUG") == "1")
         {
+            foreach (var t in teammates)
+            {
+                Console.Error.WriteLine($"DBG teammate {t.Name} chests={t.ChestsSeen}");
+            }
             string NameOfPawn(uint pawn) =>
                 _pawnToPlayerState.TryGetValue(pawn, out var ps) && _playerStateToPlayerId.TryGetValue(ps, out var pid)
                     ? players.FirstOrDefault(p => p.Id == pid)?.PlayerName ?? $"pid{pid}" : $"pawn{pawn}";
@@ -739,6 +772,7 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
             IsBattleRoyale = !string.IsNullOrEmpty(replay.GameData?.CurrentPlaylist) || chests.Count > 0,
             Chests = chests,
             TreasureFinds = finds,
+            Teammates = teammates,
         };
     }
 }

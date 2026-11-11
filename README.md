@@ -87,7 +87,7 @@ La ventana tiene tres botones: **Overlay** (mostrar u ocultar el overlay; punto 
 
 La ventana se puede **redimensionar y maximizar**: todo crece en proporción (tarjetas, cifras y gráfico) y ningún texto se corta; si una cifra no cabe en su tarjeta, su letra se reduce un poco.
 
-En **Ajustes** puedes abrir con Fortnite, abrir el informe al iniciar, elegir si las **cajas de munición, las cajas de comida y los cañones de botín** cuentan también como cofres (desactivado por defecto), elegir las actualizaciones, escribir los **cofres abiertos antes del contador** (un estimado que se suma a tu total), copiar la **dirección del overlay para OBS** y cambiar la carpeta de repeticiones. Abajo se ve la versión instalada.
+En **Ajustes** puedes abrir con Fortnite, abrir el informe al iniciar, mostrar tus **compañeros** en la ventana y el informe y **sumar sus cofres a tu total** (las dos desactivadas por defecto), elegir si las **cajas de munición, las cajas de comida y los cañones de botín** cuentan también como cofres (desactivado por defecto), elegir las actualizaciones, escribir los **cofres abiertos antes del contador** (un estimado que se suma a tu total), copiar la **dirección del overlay para OBS** y cambiar la carpeta de repeticiones. Abajo se ve la versión instalada.
 
 <p align="center"><img src="docs/settings.png" alt="Ajustes" width="400"></p>
 
@@ -95,13 +95,15 @@ De arriba abajo verás: el total de cofres, la última partida, la sesión, hoy,
 
 ## El informe
 
-`report.html` se abre en tu navegador y se actualiza solo. Usa los mismos colores que la ventana (oscuro, o claro si Windows está en modo claro) y se adapta al móvil:
+`report.html` se abre en tu navegador y se actualiza solo. Usa los mismos colores que la ventana (oscuro, o claro si Windows está en modo claro) y se adapta al móvil. Arriba tiene pestañas (**Resumen**, **Cofres**, **Tesoros**, **Partidas** y, si lo activas, **Compañeros**); la elegida se recuerda aunque la página se recargue:
 
 - **Cifras clave:** el total de cofres en grande, con los de la sesión y tus victorias reales; al lado, partidas, media por partida, récord y tesoros.
 - **Cofres por día:** gráfico de los últimos 30 días con escala, la media diaria (línea discontinua) y hoy en cian. Pasa el ratón por una barra para ver el día y sus cofres.
 - **Por tipo de cofre** y **de dónde vienen los tesoros**, con una barra de proporción por fila. Las cajas de munición, de comida y los cañones de botín aparecen aparte, indicando si suman al total.
+- **Por modo de juego:** partidas, media, récord, cofres y victorias de cada modo.
 - **Tesoros obtenidos:** cada tesoro con su partida, el momento y el cofre de origen.
 - **Últimas partidas** (las 100 más recientes): modo, puesto (🏆 victoria en dorado, top 10 en verde), cofres y tesoros.
+- **Compañeros** (si lo activas en Ajustes): con quién juegas, partidas juntos, victorias, tus cofres en esas partidas y los cofres que se les vio abrir. Estos últimos **no son exactos**: salen de tu replay, y Fortnite solo graba lo que pasa cerca de ti; si un compañero se aleja demasiado, sus cofres dejan de contarse. Son un mínimo (≥). Incluye los **cofres del equipo** (tú + tus compañeros) en total y por partida, con lo que aporta cada compañero; la ventana principal muestra el equipo de la partida actual o la última. Solo se suman a tus cifras si activas «Sumar sus cofres a tu total».
 
 <p align="center"><img src="docs/report.png" alt="Informe" width="820"></p>
 

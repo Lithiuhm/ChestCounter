@@ -3,7 +3,24 @@ using System.Runtime.Versioning;
 namespace ChestCounter;
 
 /// <summary>Lo que muestra la ventana.</summary>
-public sealed record MonitorState(OverlayView View, IReadOnlyList<Profile> Profiles, string? CurrentKey, UpdateInfo? Update, string? Notice, bool AutoCloseOffer, ChestStats Stats);
+public sealed record MonitorState(OverlayView View, IReadOnlyList<Profile> Profiles, string? CurrentKey, UpdateInfo? Update, string? Notice, bool AutoCloseOffer, ChestStats Stats)
+{
+    /// <summary>Equipo de la partida en curso o de la última (null si «Compañeros» está desactivado).</summary>
+    public TeamSummary? Team { get; init; }
+}
+
+/// <summary>Un compañero y los cofres que se le vieron abrir (un mínimo).</summary>
+public sealed record TeamMember(string Name, int Chests);
+
+/// <summary>
+/// Equipo de una partida para la ventana principal.
+/// <paramref name="Unknown"/>: partida analizada antes de guardar compañeros (sin datos de equipo).
+/// </summary>
+public sealed record TeamSummary(bool Live, int Mine, IReadOnlyList<TeamMember> Mates, bool Unknown)
+{
+    public int MatesTotal => Mates.Sum(m => m.Chests);
+    public int Total => Mine + MatesTotal;
+}
 
 /// <summary>Estadísticas del perfil mostrado (la partida en curso cuenta ya en hoy y en la mejor partida).</summary>
 /// <param name="Today">Cofres de hoy.</param>
@@ -151,6 +168,20 @@ public sealed class Monitor
         Change(change);
     }
 
+    /// <summary>Sumar o no a tu total los cofres vistos de tus compañeros. Rehace el informe enseguida.</summary>
+    public void SetCountTeammates(bool count)
+    {
+        _reportRequested = true;
+        Change(c => c.CountTeammateChests = count);
+    }
+
+    /// <summary>Mostrar u ocultar la sección «Compañeros» del informe. Rehace el informe enseguida.</summary>
+    public void SetShowTeammates(bool show)
+    {
+        _reportRequested = true;
+        Change(c => c.ShowTeammates = show);
+    }
+
     private volatile string? _resetBackup;
 
     /// <summary>
@@ -198,6 +229,27 @@ public sealed class Monitor
         });
         _reportRequested = true;
         _wake.Set();
+    }
+
+    /// <summary>
+    /// Al arrancar, antes de leer replays: rehace el informe (si no, tras actualizar seguiría el de la versión anterior
+    /// hasta la próxima partida) y lo abre si está activado «Abrir el informe al iniciar». No se abre cuando el contador
+    /// arranca solo con Fortnite, para no tapar el juego.
+    /// </summary>
+    private void WriteReportAtStart()
+    {
+        ReportWriter.WriteAll(_store, _config, _data);
+        if (_config.OpenReportOnStart && !AutoMode && File.Exists(_store.ReportPath))
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_store.ReportPath) { UseShellExecute = true })?.Dispose();
+            }
+            catch
+            {
+                // sin navegador: el botón «Informe» de la ventana sigue funcionando
+            }
+        }
     }
 
     public void ChangeDemosFolder(string folder)
@@ -292,6 +344,7 @@ public sealed class Monitor
 
     private void Loop()
     {
+        WriteReportAtStart();
         var first = true;
         while (!_stop)
         {
@@ -375,7 +428,10 @@ public sealed class Monitor
         var notice = _installing
             ? L.T("Descargando la actualización…", "Downloading the update…")
             : _notice ?? (_autoCloseAt != null ? L.T("Fortnite está cerrado: el contador se cierra en 30 s.", "Fortnite is closed: the counter closes in 30 s.") : null);
-        var state = new MonitorState(view, Profiles.List(_data, _config), Profiles.Current(_data, _config)?.Key, _update, notice, _autoCloseAt != null, BuildStats());
+        var state = new MonitorState(view, Profiles.List(_data, _config), Profiles.Current(_data, _config)?.Key, _update, notice, _autoCloseAt != null, BuildStats())
+        {
+            Team = BuildTeam(),
+        };
         Changed?.Invoke(state);
     }
 
@@ -419,6 +475,30 @@ public sealed class Monitor
                 .Select(m => (DateTime?)(m.MatchStartUtc ?? m.AnalyzedAtUtc).ToLocalTime().Date)
                 .Min(),
         };
+    }
+
+    /// <summary>
+    /// Equipo de la partida en curso (si se puede leer) o de la última: tus cofres y los vistos de cada compañero.
+    /// Null si «Compañeros» está desactivado o aún no hay partidas.
+    /// </summary>
+    private TeamSummary? BuildTeam()
+    {
+        if (!_config.ShowTeammates)
+        {
+            return null;
+        }
+        var kinds = _config.ExtraKinds();
+        var live = _tracker.IsLive ? Profiles.Adjust(_tracker.LiveMatch, _config) : null;
+        var m = live ?? Profiles.View(_data, _config).Matches.OrderByDescending(x => x.MatchStartUtc ?? x.AnalyzedAtUtc).FirstOrDefault();
+        if (m == null)
+        {
+            return null;
+        }
+        var mates = (m.Teammates ?? new List<TeammateRecord>())
+            .Select(t => new TeamMember(t.Name, MatchRecord.Seen(t, kinds)))
+            .OrderByDescending(t => t.Chests)
+            .ToList();
+        return new TeamSummary(live != null, m.OwnChests, mates, m.Teammates == null);
     }
 
     /// <summary>Última partida terminada del perfil mostrado.</summary>

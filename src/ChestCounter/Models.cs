@@ -44,6 +44,20 @@ public sealed class TreasureFind
     public List<string> AlsoPossible { get; set; } = new();
 }
 
+/// <summary>
+/// A teammate of the tracked player in one match. Only what happens near the recording player is in the replay
+/// (the game does not send what happens far away), so <see cref="ChestsSeen"/> is a minimum, never a total.
+/// </summary>
+public sealed class TeammateRecord
+{
+    public string Name { get; set; } = "";
+    public string? EpicId { get; set; }
+    /// <summary>Chests this teammate was seen opening or destroying.</summary>
+    public int ChestsSeen { get; set; }
+    /// <summary>Everything they were seen searching, by kind (chests, ammo boxes, food boxes, loot cannons).</summary>
+    public Dictionary<string, int> Kinds { get; set; } = new();
+}
+
 public sealed class MatchRecord
 {
     public string SessionId { get; set; } = "";
@@ -71,25 +85,45 @@ public sealed class MatchRecord
     public bool IsBattleRoyale { get; set; } = true;
     public List<ChestRecord> Chests { get; set; } = new();
     public List<TreasureFind> TreasureFinds { get; set; } = new();
+    /// <summary>Teammates of the match (empty in solo). Null for matches analyzed before analyzer version 13.</summary>
+    public List<TeammateRecord>? Teammates { get; set; }
 
     /// <summary>How many non-chest interactions of a kind (ammo box, food box, loot cannon) this match has.</summary>
     public int Interactions(string kind) => OtherInteractions.Count > 0
         ? OtherInteractions.GetValueOrDefault(kind)
         : kind == ChestKinds.AmmoBox ? AmmoBoxesOpened : 0; // old matches only kept the ammo boxes
 
+    /// <summary>Chests a teammate was seen opening, plus the non-chest kinds the player chose to count.</summary>
+    public static int Seen(TeammateRecord t, IReadOnlyCollection<string> kinds) =>
+        t.ChestsSeen + kinds.Sum(k => t.Kinds.GetValueOrDefault(k));
+
+    /// <summary>Chests the teammates of this match were seen opening (a minimum: only what happened nearby).</summary>
+    public int TeammatesSeen(IReadOnlyCollection<string> kinds) => Teammates?.Sum(t => Seen(t, kinds)) ?? 0;
+
+    /// <summary>Teammates' chests added to <see cref="ChestsOpened"/> by the setting (only on adjusted copies).</summary>
+    [JsonIgnore]
+    public int TeammatesAdded { get; private set; }
+
+    /// <summary>The player's own chests (with the chosen extra kinds), without the teammates' ones.</summary>
+    [JsonIgnore]
+    public int OwnChests => ChestsOpened - TeammatesAdded;
+
     /// <summary>
-    /// Copy whose chest total also includes the given non-chest kinds (settings "count ammo boxes"...).
-    /// The saved history is never changed. Returns the same match when nothing is added.
+    /// Copy whose chest total also includes the given non-chest kinds (settings "count ammo boxes"...) and, when
+    /// asked, the chests the teammates were seen opening. The saved history is never changed. Returns the same match
+    /// when nothing is added.
     /// </summary>
-    public MatchRecord WithExtras(IReadOnlyCollection<string> kinds)
+    public MatchRecord WithExtras(IReadOnlyCollection<string> kinds, bool addTeammates = false)
     {
         var extra = kinds.Sum(Interactions);
-        if (extra == 0)
+        var mates = addTeammates ? TeammatesSeen(kinds) : 0;
+        if (extra == 0 && mates == 0)
         {
             return this;
         }
         var copy = (MatchRecord)MemberwiseClone();
-        copy.ChestsOpened = ChestsOpened + extra;
+        copy.ChestsOpened = ChestsOpened + extra + mates;
+        copy.TeammatesAdded = mates;
         return copy;
     }
 }
@@ -136,6 +170,18 @@ public sealed class Config
     public bool CountAmmoBoxes { get; set; }
     public bool CountFoodBoxes { get; set; }
     public bool CountLootCannons { get; set; }
+
+    /// <summary>
+    /// Show the teammates section in the report (off by default): their chests come from the player's own replay,
+    /// which only holds what happens nearby, so they are a minimum.
+    /// </summary>
+    public bool ShowTeammates { get; set; }
+
+    /// <summary>
+    /// Add the chests the teammates were seen opening to the player's own total (off by default). Like the extra
+    /// kinds, only the figures shown change: the saved history keeps the player's own chests.
+    /// </summary>
+    public bool CountTeammateChests { get; set; }
 
     /// <summary>Non-chest kinds the player chose to add to the chest total.</summary>
     public IReadOnlyCollection<string> ExtraKinds()

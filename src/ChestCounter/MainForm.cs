@@ -32,6 +32,10 @@ public sealed class MainForm : Form
     private readonly PillButton _overlayButton, _reportButton, _settingsButton;
     private readonly DailyChart _daily;
     private readonly Label _lastValue, _lastDetail;
+    private readonly Card _teamCard;
+    private readonly Label _teamTitle, _teamTotal, _teamMessage;
+    private readonly Label[] _teamNames = new Label[TeamColumns], _teamValues = new Label[TeamColumns];
+    private const int TeamColumns = 4; // tú + hasta 3 compañeros (escuadrón)
     private MonitorState? _last;
     private string? _profileSig;
     private bool _ignoreProfileChange;
@@ -108,6 +112,20 @@ public sealed class MainForm : Form
         daily.Controls.Add(_daily);
         Controls.Add(daily);
 
+        // Equipo (con «Compañeros» activado): tus cofres y los vistos de cada compañero en la partida actual o la última.
+        // Solo se ve con la opción activada; entonces la ventana crece para hacerle sitio.
+        _teamCard = new Card { Location = new Point(LeftX, 334), Size = new Size(RightX + RightW - LeftX, 74), Radius = 14, Visible = false };
+        _teamTitle = Lbl(_teamCard, L.T("Equipo", "Team"), 7.5f, FontStyle.Regular, Theme.Muted, new Point(13, 7), new Size(250, 14));
+        _teamTotal = Lbl(_teamCard, "", 8.0f, FontStyle.Bold, Theme.Ink, new Point(_teamCard.Width - 13 - 300, 6), new Size(300, 15), ContentAlignment.TopRight);
+        var colW = (_teamCard.Width - 26) / TeamColumns;
+        for (var i = 0; i < TeamColumns; i++)
+        {
+            _teamNames[i] = Lbl(_teamCard, "", 7.5f, FontStyle.Regular, Theme.Muted, new Point(13 + i * colW, 28), new Size(colW - 10, 14));
+            _teamValues[i] = Lbl(_teamCard, "", 14f, FontStyle.Bold, i == 0 ? Theme.Amber : Theme.Ink, new Point(12 + i * colW, 42), new Size(colW - 10, 26));
+        }
+        _teamMessage = Lbl(_teamCard, "", 8.0f, FontStyle.Regular, Theme.Muted, new Point(13 + colW, 28), new Size(_teamCard.Width - 26 - colW, 40), ContentAlignment.MiddleLeft);
+        Controls.Add(_teamCard);
+
         // Rejilla de estadísticas: dos columnas, tres filas (columna derecha).
         _statToday = Stat(L.T("Hoy", "Today"), RightX, 40, Theme.Cyan, out _statTodayCap);
         _statBestDay = Stat(L.T("Mejor día", "Best day"), RightX + 142, 40, Theme.Amber, out _statBestDayCap);
@@ -154,7 +172,8 @@ public sealed class MainForm : Form
         };
     }
 
-    private const int DesignW = 592, DesignH = 332;
+    private const int DesignW = 592, DesignHBase = 332, DesignHTeam = 416;
+    private int _designH = DesignHBase;
     private readonly Dictionary<Control, LayoutEntry> _layout = new();
     private System.Windows.Forms.Timer? _scaleTimer;
     private float _lastFx = 1, _lastFy = 1;
@@ -199,7 +218,7 @@ public sealed class MainForm : Form
             return;
         }
         var fx = ClientSize.Width / (float)DesignW;
-        var fy = ClientSize.Height / (float)DesignH;
+        var fy = ClientSize.Height / (float)_designH;
         if (Math.Abs(fx - _lastFx) < 0.005 && Math.Abs(fy - _lastFy) < 0.005)
         {
             return;
@@ -307,6 +326,7 @@ public sealed class MainForm : Form
             _lastDetail.Text = "";
         }
         _daily.SetDays(st.LastDays);
+        RenderTeam(s.Team);
 
         // Perfil: nombre fijo con una sola cuenta, selector con varias.
         var signature = string.Join("|", s.Profiles.Select(p => p.Key));
@@ -353,6 +373,58 @@ public sealed class MainForm : Form
         // Los botones ocupan el mismo sitio que el aviso o la actualización: cuando hay aviso, se ocultan.
         var notice = _update.Visible || _noticeCard.Visible;
         _overlayButton.Visible = _reportButton.Visible = _settingsButton.Visible = !notice;
+    }
+
+    /// <summary>
+    /// Tarjeta «Equipo»: tus cofres y los vistos de cada compañero (un mínimo: el replay solo tiene lo que pasa cerca
+    /// de ti). Sin datos de equipo (opción desactivada) la tarjeta se oculta y la ventana vuelve a su tamaño.
+    /// </summary>
+    private void RenderTeam(TeamSummary? team)
+    {
+        SetTeamVisible(team != null);
+        if (team == null)
+        {
+            return;
+        }
+        _teamTitle.Text = team.Live ? L.T("Equipo · partida actual", "Team · current match") : L.T("Equipo · última partida", "Team · last match");
+        _teamTitle.ForeColor = team.Live ? Theme.Mint : Theme.Muted;
+        _teamNames[0].Text = L.T("Tú", "You");
+        _teamValues[0].Text = L.N(team.Mine);
+
+        var message = team.Unknown
+            ? L.T("Partida analizada antes de guardar compañeros.", "Match analyzed before teammates were saved.")
+            : team.Mates.Count == 0 ? L.T("Partida en solitario: sin compañeros.", "Solo match: no teammates.") : null;
+        _teamMessage.Text = message ?? "";
+        _teamMessage.Visible = message != null;
+        _teamTotal.Text = team.Mates.Count == 0 ? ""
+            : team.Total > 0
+                ? L.F("Equipo ≥ {0} · compañeros ≥ {1} %", "Team ≥ {0} · teammates ≥ {1} %", L.N(team.Total), (100.0 * team.MatesTotal / team.Total).ToString("0", L.Culture))
+                : L.F("Equipo ≥ {0}", "Team ≥ {0}", L.N(team.Total));
+        for (var i = 1; i < TeamColumns; i++)
+        {
+            var mate = message == null && i - 1 < team.Mates.Count ? team.Mates[i - 1] : null;
+            _teamNames[i].Text = mate?.Name ?? "";
+            _teamValues[i].Text = mate != null ? "≥ " + L.N(mate.Chests) : "";
+            _teamNames[i].Visible = _teamValues[i].Visible = message == null;
+        }
+    }
+
+    /// <summary>Muestra u oculta la tarjeta «Equipo»; la ventana crece o encoge con ella, a la misma escala.</summary>
+    private void SetTeamVisible(bool on)
+    {
+        if (_teamCard.Visible == on)
+        {
+            return;
+        }
+        var scale = ClientSize.Height / (float)_designH;
+        _teamCard.Visible = on;
+        _designH = on ? DesignHTeam : DesignHBase;
+        _lastFx = _lastFy = -1; // vuelve a colocar todo con la nueva altura de diseño
+        if (WindowState == FormWindowState.Normal)
+        {
+            ClientSize = new Size(ClientSize.Width, (int)Math.Round(_designH * scale));
+        }
+        ApplyLayoutScale();
     }
 
     /// <summary>Tarjeta de estadística: título arriba y cifra debajo. Devuelve la etiqueta de la cifra.</summary>

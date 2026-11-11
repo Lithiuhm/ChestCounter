@@ -44,7 +44,7 @@ public sealed class SettingsForm : Form
         MinimizeBox = false;
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(592, 478);
+        ClientSize = new Size(592, 548);
         Icon = AppIcon.Load();
 
         // Cabecera, como en la ventana principal.
@@ -55,7 +55,7 @@ public sealed class SettingsForm : Form
         // ---- Columna izquierda ---------------------------------------------------------------
 
         // Opciones: dos interruptores.
-        var start = AddCard(LeftX, 40, LeftW, 100, 16);
+        var start = AddCard(LeftX, 40, LeftW, 170, 16);
         CardTitle(start, L.T("Opciones", "Options"));
         _fortnite = AddToggleRow(start, L.T("Abrir con Fortnite", "Open with Fortnite"),
             L.T("Cuenta tus partidas sin pensar en ello", "Counts your matches without thinking about it"), 24, config.StartWithFortnite);
@@ -77,9 +77,42 @@ public sealed class SettingsForm : Form
         };
         _report = AddToggleRow(start, L.T("Abrir el informe al iniciar", "Open the report at startup"), null, 64, config.OpenReportOnStart);
         _report.CheckedChanged += (_, _) => { if (!_loading) _monitor.Change(c => c.OpenReportOnStart = _report.Checked); };
+        var mates = AddToggleRow(start, L.T("Compañeros en el informe", "Teammates in the report"),
+            L.T("Sus cofres son aproximados", "Their chests are approximate"), 94, config.ShowTeammates);
+        mates.CheckedChanged += (_, _) =>
+        {
+            if (_loading)
+            {
+                return;
+            }
+            if (mates.Checked)
+            {
+                MessageBox.Show(this, L.Big("teammatesWarning",
+                        "El informe mostrará con quién juegas, cuántas partidas habéis jugado juntos y vuestras victorias.\n\nLos cofres de tus compañeros no son exactos: salen de tu replay, y Fortnite solo graba lo que pasa cerca de ti. Si un compañero se aleja demasiado, sus cofres dejan de contarse. Son un mínimo, no su total.",
+                        "The report will show who you play with, how many matches you played together and your wins.\n\nYour teammates' chests are not exact: they come from your replay, and Fortnite only records what happens near you. If a teammate goes too far away, their chests stop being counted. They are a minimum, not their total."),
+                    L.T("Compañeros en el informe", "Teammates in the report"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            _monitor.SetShowTeammates(mates.Checked);
+        };
+        var addMates = AddToggleRow(start, L.T("Sumar sus cofres a tu total", "Add their chests to your total"), null, 134, config.CountTeammateChests);
+        addMates.CheckedChanged += (_, _) =>
+        {
+            if (_loading)
+            {
+                return;
+            }
+            if (addMates.Checked)
+            {
+                MessageBox.Show(this, L.Big("teammatesAddWarning",
+                        "Tu total, tu media, tus récords y el overlay incluirán también los cofres que se vio abrir a tus compañeros.\n\nNo son exactos: Fortnite solo graba lo que pasa cerca de ti, así que los cofres de un compañero que se aleja no se cuentan. Tu historial no cambia: al desactivarlo vuelves a ver solo los tuyos.",
+                        "Your total, your average, your records and the overlay will also include the chests your teammates were seen opening.\n\nThey are not exact: Fortnite only records what happens near you, so the chests of a teammate who goes away are not counted. Your history does not change: turning it off shows only yours again."),
+                    L.T("Sumar sus cofres a tu total", "Add their chests to your total"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            _monitor.SetCountTeammates(addMates.Checked);
+        };
 
         // Contar también como cofre: cajas de munición, de comida y cañones de botín (los cofres rotos cuentan siempre).
-        var extras = AddCard(LeftX, 149, LeftW, 116, 16);
+        var extras = AddCard(LeftX, 219, LeftW, 116, 16);
         CardTitle(extras, L.T("Contar también como cofre", "Also count as a chest"));
         var ammo = AddToggleRow(extras, L.T("Cajas de munición", "Ammo boxes"), null, 26, config.CountAmmoBoxes);
         ammo.CheckedChanged += (_, _) => { if (!_loading) _monitor.SetCountExtra(c => c.CountAmmoBoxes = ammo.Checked); };
@@ -89,13 +122,13 @@ public sealed class SettingsForm : Form
         cannons.CheckedChanged += (_, _) => { if (!_loading) _monitor.SetCountExtra(c => c.CountLootCannons = cannons.Checked); };
 
         // Actualizaciones: tres píldoras.
-        var updates = AddCard(RightX, 149, RightW, 74, 14);
+        var updates = AddCard(RightX, 169, RightW, 94, 14);
         CardTitle(updates, L.T("Actualizaciones", "Updates"));
         var pillW = (RightW - 26 - 2 * 6) / 3;
         for (var i = 0; i < UpdateModes.Length; i++)
         {
             var index = i;
-            var pill = new PillButton { Text = UpdateLabels[i], Location = new Point(13 + i * (pillW + 6), 30), Size = new Size(pillW, 32), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold) };
+            var pill = new PillButton { Text = UpdateLabels[i], Location = new Point(13 + i * (pillW + 6), 41), Size = new Size(pillW, 32), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold) };
             pill.Click += (_, _) => SelectUpdateMode(index, save: true);
             updates.Controls.Add(pill);
             _updates[i] = pill;
@@ -104,7 +137,7 @@ public sealed class SettingsForm : Form
         SelectUpdateMode(mode < 0 ? 0 : mode, save: false);
 
         // Carpeta de replays y datos.
-        var folderCard = AddCard(LeftX, 274, LeftW, 94, 14);
+        var folderCard = AddCard(LeftX, 344, LeftW, 94, 14);
         CardTitle(folderCard, L.T("Carpeta de replays", "Replays folder"));
         _folder = AddField(folderCard, new Point(13, 26), LeftW - 26 - 72, config.DemosFolder);
         var browse = new PillButton { Text = L.T("Cambiar", "Change"), Location = new Point(LeftW - 13 - 66, 26), Size = new Size(66, 30), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold) };
@@ -116,7 +149,7 @@ public sealed class SettingsForm : Form
         // ---- Columna derecha -----------------------------------------------------------------
 
         // Cofres de antes del contador: cifra grande en ámbar, editable, con − / +.
-        var initial = AddCard(RightX, 40, RightW, 100, 16);
+        var initial = AddCard(RightX, 40, RightW, 120, 16);
         CardTitle(initial, L.T("Cofres antes del contador", "Chests before the counter"));
         _initial = new TextBox
         {
@@ -124,14 +157,14 @@ public sealed class SettingsForm : Form
             BackColor = Theme.Card,
             ForeColor = Theme.Amber,
             Font = Theme.Text(24f, FontStyle.Bold),
-            Location = new Point(15, 26),
+            Location = new Point(15, 36),
             Width = 160,
             MaxLength = 7,
             Text = Math.Min(MaxInitial, monitor.InitialChests).ToString(L.Culture),
         };
         initial.Controls.Add(_initial);
-        var plus = new PillButton { Text = "+", Location = new Point(RightW - 13 - 34, 22), Size = new Size(34, 28), Radius = 9, Font = Theme.Text(11f, FontStyle.Bold) };
-        var minus = new PillButton { Text = "−", Location = new Point(RightW - 13 - 34, 54), Size = new Size(34, 28), Radius = 9, Font = Theme.Text(11f, FontStyle.Bold) };
+        var plus = new PillButton { Text = "+", Location = new Point(RightW - 13 - 34, 32), Size = new Size(34, 28), Radius = 9, Font = Theme.Text(11f, FontStyle.Bold) };
+        var minus = new PillButton { Text = "−", Location = new Point(RightW - 13 - 34, 64), Size = new Size(34, 28), Radius = 9, Font = Theme.Text(11f, FontStyle.Bold) };
         plus.Click += (_, _) => StepInitial(10);
         minus.Click += (_, _) => StepInitial(-10);
         initial.Controls.Add(plus);
@@ -148,18 +181,18 @@ public sealed class SettingsForm : Form
         Lbl(initial, profileName != null
                 ? L.F("estimado · se suma al total de {0}", "estimate · added to {0}'s total", profileName)
                 : L.T("estimado · se suma a tu total", "estimate · added to your total"),
-            8.0f, FontStyle.Regular, Theme.Muted, new Point(16, 74), new Size(RightW - 70, 16));
+            8.0f, FontStyle.Regular, Theme.Muted, new Point(16, 88), new Size(RightW - 70, 16));
 
         // OBS: dirección y estado.
-        var obsCard = AddCard(RightX, 232, RightW, 74, 14);
+        var obsCard = AddCard(RightX, 272, RightW, 94, 14);
         CardTitle(obsCard, L.T("Overlay para OBS", "Overlay for OBS"));
         var obsUrl = ObsServer.Url;
         var stateCard = new Card { Location = new Point(RightW - 13 - 70, 6), Size = new Size(70, 18), Radius = 9, BackColor = Theme.Panel };
         Lbl(stateCard, obsUrl != null ? L.T("● ACTIVO", "● ON") : L.T("● NO", "● OFF"), 7.0f, FontStyle.Bold,
             obsUrl != null ? Theme.Mint : Theme.Red, new Point(0, 0), new Size(70, 18), ContentAlignment.MiddleCenter);
         obsCard.Controls.Add(stateCard);
-        var obs = AddField(obsCard, new Point(13, 30), RightW - 26 - 72, obsUrl ?? L.T("Puerto ocupado", "Port in use"));
-        var copy = new PillButton { Text = L.T("Copiar", "Copy"), Location = new Point(RightW - 13 - 66, 30), Size = new Size(66, 30), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold), Enabled = obsUrl != null };
+        var obs = AddField(obsCard, new Point(13, 41), RightW - 26 - 72, obsUrl ?? L.T("Puerto ocupado", "Port in use"));
+        var copy = new PillButton { Text = L.T("Copiar", "Copy"), Location = new Point(RightW - 13 - 66, 41), Size = new Size(66, 30), Radius = 10, Font = Theme.Text(8.5f, FontStyle.Bold), Enabled = obsUrl != null };
         copy.Click += (_, _) =>
         {
             try
@@ -176,16 +209,16 @@ public sealed class SettingsForm : Form
         obsCard.Controls.Add(copy);
 
         // Atajos del overlay.
-        var keys = AddCard(RightX, 315, RightW, 45, 12);
-        Lbl(keys, L.T("Atajos del overlay", "Overlay shortcuts"), 7.5f, FontStyle.Regular, Theme.Muted, new Point(13, 6), new Size(RightW - 26, 13));
+        var keys = AddCard(RightX, 375, RightW, 55, 12);
+        Lbl(keys, L.T("Atajos del overlay", "Overlay shortcuts"), 7.5f, FontStyle.Regular, Theme.Muted, new Point(13, 9), new Size(RightW - 26, 13));
         Lbl(keys, L.T("Ctrl+Mayús+O mostrar  ·  Ctrl+Mayús+L fijar", "Ctrl+Shift+O show  ·  Ctrl+Shift+L lock"),
-            8.0f, FontStyle.Bold, Theme.Ink, new Point(13, 21), new Size(RightW - 26, 18));
+            8.0f, FontStyle.Bold, Theme.Ink, new Point(13, 27), new Size(RightW - 26, 18));
 
         // Restablecer estadísticas: borra el historial (con confirmación y copia de seguridad).
         var reset = new PillButton
         {
             Text = L.T("Restablecer estadísticas…", "Reset statistics…"),
-            Location = new Point(LeftX, 377),
+            Location = new Point(LeftX, 447),
             Size = new Size(LeftW, 32),
             Radius = 10,
             Font = Theme.Text(8.5f, FontStyle.Bold),
@@ -198,7 +231,7 @@ public sealed class SettingsForm : Form
         var close = new PillButton
         {
             Text = L.T("Cerrar", "Close"),
-            Location = new Point(RightX, 369),
+            Location = new Point(RightX, 439),
             Size = new Size(RightW, 40),
             Radius = 12,
             BackColor = Theme.Accent,
@@ -209,7 +242,7 @@ public sealed class SettingsForm : Form
         Controls.Add(close);
 
         // Pie: web y redes del autor, como enlaces que abren el navegador.
-        var footer = AddCard(LeftX, 420, RightX + RightW - LeftX, 44, 12);
+        var footer = AddCard(LeftX, 490, RightX + RightW - LeftX, 44, 12);
         AddLinks(footer, L.T("Web y redes", "Web and social"), "dprojects.org", "https://dprojects.org/",
             new (string Tip, string Url, string Logo)[]
             {

@@ -87,7 +87,7 @@ The window has three buttons: **Overlay** (show or hide the overlay; green dot =
 
 The window can be **resized and maximized**: everything grows in proportion (cards, figures and chart) and no text gets cut off; if a figure does not fit its card, its font shrinks a little.
 
-In **Settings** you can open with Fortnite, open the report at startup, choose whether **ammo boxes, food boxes and loot cannons** also count as chests (off by default), choose the updates, type the **chests opened before the counter** (an estimate added to your total), copy the **overlay address for OBS** and change the replays folder. The installed version is shown at the bottom.
+In **Settings** you can open with Fortnite, open the report at startup, show your **teammates** in the window and the report and **add their chests to your total** (both off by default), choose whether **ammo boxes, food boxes and loot cannons** also count as chests (off by default), choose the updates, type the **chests opened before the counter** (an estimate added to your total), copy the **overlay address for OBS** and change the replays folder. The installed version is shown at the bottom.
 
 <p align="center"><img src="docs/settings.png" alt="Settings" width="400"></p>
 
@@ -95,13 +95,15 @@ From top to bottom you will see: the total chests, the last match, the session, 
 
 ## The report
 
-`report.html` opens in your browser and refreshes by itself. It uses the same colors as the window (dark, or light when Windows is in light mode) and adapts to phones:
+`report.html` opens in your browser and refreshes by itself. It uses the same colors as the window (dark, or light when Windows is in light mode) and adapts to phones. It has tabs at the top (**Overview**, **Chests**, **Treasures**, **Matches** and, if you turn it on, **Teammates**); the chosen one is remembered when the page reloads:
 
 - **Key figures:** the total chests in large type, with this session's chests and your Victory Royales; next to it, matches, average per match, best match and treasures.
 - **Chests per day:** chart of the last 30 days with a scale, the daily average (dashed line) and today in cyan. Hover a bar to see the day and its chests.
 - **By chest type** and **where the treasures come from**, with a proportion bar on each row. Ammo boxes, food boxes and loot cannons are listed apart, showing whether they are added to the total.
+- **By game mode:** matches, average, best, chests and wins for each mode.
 - **Treasures obtained:** each treasure with its match, the moment and the source chest.
 - **Latest matches** (the 100 most recent): mode, placement (🏆 victory in gold, top 10 in green), chests and treasures.
+- **Teammates** (if you turn it on in Settings): who you play with, matches together, wins, your chests in those matches and the chests they were seen opening. The latter are **not exact**: they come from your replay, and Fortnite only records what happens near you; if a teammate goes too far away, their chests stop being counted. They are a minimum (≥). It includes the **team chests** (you + your teammates) in total and per match, with each teammate's share; the main window shows the team of the current or last match. They are only added to your figures if you turn on "Add their chests to your total".
 
 <p align="center"><img src="docs/report.png" alt="Report" width="820"></p>
 

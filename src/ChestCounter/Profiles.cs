@@ -51,8 +51,8 @@ public static class Profiles
         };
     }
 
-    /// <summary>A match as shown: its total also includes the non-chest kinds chosen in the settings.</summary>
-    public static MatchRecord? Adjust(MatchRecord? m, Config c) => m?.WithExtras(c.ExtraKinds());
+    /// <summary>A match as shown: its total also includes the non-chest kinds and, if chosen, the teammates' chests.</summary>
+    public static MatchRecord? Adjust(MatchRecord? m, Config c) => m?.WithExtras(c.ExtraKinds(), c.CountTeammateChests);
 
     /// <summary>Estimated chests opened before the tool for a profile key ("" = before the first match).</summary>
     public static int InitialChests(Config c, string? key) =>
